@@ -50,6 +50,19 @@ Keep this package free of server-only (Node/Drizzle) or web-only
 (React/DOM) dependencies — anything that needs those belongs in `server`
 or `web` instead, even if it feels shared in spirit.
 
+Shared request validation belongs in `shared/src/schemas/`, with model types
+inferred using `z.infer`. Web forms derive their input shapes from these schemas;
+server routes use `validateJson(schema)` and read `c.req.valid("json")`.
+Keep component state and provider-specific adapters local. Shared response models
+belong in `shared/src/interfaces/`; database JSON columns reference these types
+with Drizzle `.$type<T>()`. Derive partial updates with `.partial()` and narrower
+forms with `.pick()`/`.omit()` instead of copying field declarations.
+
+Bin settings are defined in `shared/src/schemas/bin-settings.schema.ts`. `binUpdateSchema` requires rules but allows other
+settings to be omitted; `applyBinUpdate` preserves omitted settings and
+treats an explicit `cardLimit: null` as unlimited. Run the contract and
+rule-engine tests with `pnpm --filter @magic-vault/server test`.
+
 ## `packages/server`
 
 Hono 4 API. Each resource gets its own route file in `src/routes/`

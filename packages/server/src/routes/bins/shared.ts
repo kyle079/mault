@@ -5,9 +5,9 @@ import {
   type BinSet,
   type FieldMeta,
 } from "@magic-vault/shared";
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import type { Transaction } from "../../db";
-import { bins, binSetAudit, binSets } from "../../db/schema";
+import { bins, binSetAudit } from "../../db/schema";
 
 export async function getModuleCount(
   tx: Transaction,
@@ -36,15 +36,7 @@ function toBinSet(row: {
   scanOnly: boolean;
   createdAt: Date;
   updatedAt: Date;
-  bins: {
-    guid: string | null;
-    binNumber: number;
-    rules: unknown;
-    isCatchAll: boolean;
-    isOverride: boolean;
-    cardLimit: number | null;
-    lastEmptiedAt: Date | null;
-  }[];
+  bins: Pick<typeof bins.$inferSelect, keyof BinConfig>[];
   game: {
     guid: string | null;
     key: string;
@@ -66,7 +58,7 @@ function toBinSet(row: {
     bins: row.bins.map((bin) => ({
       guid: bin.guid!,
       binNumber: bin.binNumber,
-      rules: bin.rules as BinRuleGroup,
+      rules: bin.rules,
       isCatchAll: bin.isCatchAll,
       isOverride: bin.isOverride,
       cardLimit: bin.cardLimit,
@@ -145,7 +137,7 @@ export async function snapshotBinSet(
   const snapshot: BinConfig[] = rows.map((r) => ({
     guid: r.guid!,
     binNumber: r.binNumber,
-    rules: r.rules as BinRuleGroup,
+    rules: r.rules,
     isCatchAll: r.isCatchAll,
     isOverride: r.isOverride,
     cardLimit: r.cardLimit,

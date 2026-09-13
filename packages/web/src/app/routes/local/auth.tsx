@@ -19,15 +19,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { z } from "zod";
 
-const signInSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
-});
-const signUpSchema = z.object({
-  name: z.string().min(1),
-  email: z.string().email(),
-  password: z.string().min(8),
-});
+import { signInSchema, signUpSchema } from "@magic-vault/shared";
 
 export default function AuthLocalPage() {
   const { t } = useTranslation("auth");

@@ -1,18 +1,21 @@
+import { scanOnlySchema } from "@magic-vault/shared";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { authQuery } from "../../db";
 import { binSets } from "../../db/schema";
 import { requireAuth, requireOrg, type AppEnv } from "../../middleware/auth";
+import { validateJson } from "../../middleware/validate-json";
 import { applyScanOnlyBins, loadSets, snapshotBinSet } from "./shared";
 
 export const setScanOnlyRoute = new Hono<AppEnv>().put(
   "/:guid/scan-only",
   requireAuth,
   requireOrg,
+  validateJson(scanOnlySchema),
   async (c) => {
     const orgId = c.get("orgId");
     const guid = c.req.param("guid");
-    const { enabled } = await c.req.json<{ enabled: boolean }>();
+    const { enabled } = c.req.valid("json");
     try {
       const result = await authQuery(c.get("jwtClaims"), async (tx) => {
         const target = await tx.query.binSets.findFirst({

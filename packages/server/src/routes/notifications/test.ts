@@ -1,8 +1,16 @@
+import {
+  notificationTestSchema,
+  type NotificationTestType,
+} from "@magic-vault/shared";
 import { Hono } from "hono";
 import { sendDiscordNotification } from "../../lib/discord";
 import { requireAuth, requireOrg, type AppEnv } from "../../middleware/auth";
+import { validateJson } from "../../middleware/validate-json";
 
-const TEST_EMBEDS: Record<string, { title: string; description: string }> = {
+const TEST_EMBEDS: Record<
+  NotificationTestType,
+  { title: string; description: string }
+> = {
   "sorter-error": {
     title: "Magic Vault — Sorter Error [TEST]",
     description:
@@ -33,15 +41,10 @@ export const testNotificationRoute = new Hono<AppEnv>().post(
   "/test",
   requireAuth,
   requireOrg,
+  validateJson(notificationTestSchema),
   async (c) => {
-    const { type } = await c.req.json<{ type: string }>();
+    const { type } = c.req.valid("json");
     const embed = TEST_EMBEDS[type];
-    if (!embed) {
-      return c.json(
-        { success: false, message: "Unknown notification type." },
-        400,
-      );
-    }
     const orgId = c.get("orgId");
     await sendDiscordNotification(
       orgId,

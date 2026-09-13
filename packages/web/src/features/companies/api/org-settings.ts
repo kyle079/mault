@@ -1,9 +1,13 @@
 import { apiGet, apiPost, apiPut } from "@/lib/api/client";
-import { DEFAULT_ORG_SETTINGS, type OrgSettings } from "@/lib/constants/org-settings";
+import {
+  DEFAULT_ORG_SETTINGS,
+  type OrgSettings,
+  type OrgSettingsUpdate,
+} from "@magic-vault/shared";
 import { queryOptions } from "@tanstack/react-query";
 
-export type { OrgSettings };
 export { DEFAULT_ORG_SETTINGS };
+export type { OrgSettings };
 
 export async function getOrgSettings(): Promise<{
   success: boolean;
@@ -13,7 +17,7 @@ export async function getOrgSettings(): Promise<{
 }
 
 export async function saveOrgSettings(
-  patch: Partial<OrgSettings>,
+  patch: OrgSettingsUpdate,
 ): Promise<{ success: boolean; data?: OrgSettings }> {
   return apiPut("/api/org-settings", patch);
 }

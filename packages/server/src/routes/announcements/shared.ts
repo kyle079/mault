@@ -1,7 +1,9 @@
 import type { Announcement, AnnouncementSeverity } from "@magic-vault/shared";
 import type { announcements } from "../../db/schema";
 
-export function toAnnouncement(row: typeof announcements.$inferSelect): Announcement {
+export function toAnnouncement(
+  row: typeof announcements.$inferSelect,
+): Announcement {
   return {
     guid: row.guid!,
     severity: row.severity as AnnouncementSeverity,
@@ -14,10 +16,4 @@ export function toAnnouncement(row: typeof announcements.$inferSelect): Announce
   };
 }
 
-export interface AnnouncementInput {
-  severity: AnnouncementSeverity;
-  message: string;
-  isActive?: boolean;
-  startsAt?: string | null;
-  endsAt?: string | null;
-}
+export type { AnnouncementInput } from "@magic-vault/shared";

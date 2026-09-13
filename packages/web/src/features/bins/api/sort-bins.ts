@@ -1,12 +1,12 @@
+import { apiDelete, apiGet, apiPost, apiPut } from "@/lib/api/client";
+import type { BinSetAuditEntry } from "@/lib/interfaces/audit";
 import type {
   BinConfig,
-  BinRuleGroup,
   BinSet,
+  BinUpdate,
   DefaultBinInit,
   Result,
 } from "@magic-vault/shared";
-import { apiDelete, apiGet, apiPost, apiPut } from "@/lib/api/client";
-import type { BinSetAuditEntry } from "@/lib/interfaces/audit";
 import { queryOptions } from "@tanstack/react-query";
 
 export type { BinSetAuditEntry };
@@ -30,10 +30,17 @@ export async function createSet(
   initialBins?: DefaultBinInit[],
   gameGuid?: string,
 ): Promise<Result<BinSet[]>> {
-  return apiPost<Result<BinSet[]>>("/api/bins", { name, initialBins, gameGuid });
+  return apiPost<Result<BinSet[]>>("/api/bins", {
+    name,
+    initialBins,
+    gameGuid,
+  });
 }
 
-export async function saveSet(name: string, gameGuid?: string): Promise<Result<BinSet[]>> {
+export async function saveSet(
+  name: string,
+  gameGuid?: string,
+): Promise<Result<BinSet[]>> {
   return apiPost<Result<BinSet[]>>("/api/bins/copies", { name, gameGuid });
 }
 
@@ -63,26 +70,18 @@ export async function checkSetName(
 
 export async function saveBinConfig({
   binNumber,
-  rules,
-  isCatchAll,
-  isOverride,
-  cardLimit,
+  settings,
   gameGuid,
 }: {
   binNumber: number;
-  rules: BinRuleGroup;
-  isCatchAll?: boolean;
-  isOverride?: boolean;
-  cardLimit?: number | null;
+  settings: BinUpdate;
   gameGuid?: string;
 }): Promise<Result<BinConfig[]>> {
   const params = gameGuid ? `?${new URLSearchParams({ gameGuid })}` : "";
-  return apiPut<Result<BinConfig[]>>(`/api/bins/bins/${binNumber}${params}`, {
-    rules,
-    isCatchAll,
-    isOverride,
-    cardLimit,
-  });
+  return apiPut<Result<BinConfig[]>>(
+    `/api/bins/bins/${binNumber}${params}`,
+    settings,
+  );
 }
 
 export async function clearBinConfig(
@@ -121,8 +120,12 @@ export async function setScanOnly(
   return apiPut<Result<BinSet[]>>(`/api/bins/${guid}/scan-only`, { enabled });
 }
 
-export async function getBinSetHistory(setGuid: string): Promise<Result<BinSetAuditEntry[]>> {
-  return apiGet<Result<BinSetAuditEntry[]>>(`/api/bins/history?setGuid=${encodeURIComponent(setGuid)}`);
+export async function getBinSetHistory(
+  setGuid: string,
+): Promise<Result<BinSetAuditEntry[]>> {
+  return apiGet<Result<BinSetAuditEntry[]>>(
+    `/api/bins/history?setGuid=${encodeURIComponent(setGuid)}`,
+  );
 }
 
 export async function revertBinSet(guid: string): Promise<Result<BinSet[]>> {

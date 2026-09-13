@@ -1,3 +1,4 @@
+import { cardDumpInputSchema } from "@magic-vault/shared";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { db } from "../../db";
@@ -19,10 +20,13 @@ export const cardsDumpRoute = new Hono<AppEnv>().post(
 
     let gameKey: string | undefined;
     try {
-      const body = await c.req.json<{ gameKey?: string }>();
+      const text = await c.req.text();
+      const body = cardDumpInputSchema.parse(
+        text.trim() ? JSON.parse(text) : {},
+      );
       if (body.gameKey) gameKey = body.gameKey;
     } catch {
-      // no/invalid body - dump everything
+      return c.json({ success: false, message: "Invalid request." }, 400);
     }
 
     if (gameKey) {

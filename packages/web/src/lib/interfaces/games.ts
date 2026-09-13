@@ -1,22 +1,7 @@
-import type { FieldMeta, FieldType } from "@magic-vault/shared";
+import type { FieldMeta } from "@magic-vault/shared";
 
-export interface GameInput {
-  key: string;
-  name: string;
-  fieldDefinitions: FieldMeta[];
-  foilTypes: string[];
-  apiDocsUrl?: string | null;
-  isActive: boolean;
-}
+export type { GameInput } from "@magic-vault/shared";
 
-export interface SampleCard {
-  name: string;
-  raw: unknown;
-}
+export type { SampleCard } from "@magic-vault/shared";
 
-export interface PickedField {
-  field: string;
-  label: string;
-  type: FieldType;
-  path: string;
-}
+export type PickedField = Pick<FieldMeta, "field" | "label" | "type" | "path">;

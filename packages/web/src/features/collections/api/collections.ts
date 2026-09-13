@@ -1,5 +1,21 @@
-import { API_BASE, apiDelete, apiGet, apiPost, apiPut, getAuthHeaders, handleForbidden } from "@/lib/api/client";
-import type { Collection, Result, ScannedCard, UnmatchedCard } from "@magic-vault/shared";
+import {
+  API_BASE,
+  apiDelete,
+  apiGet,
+  apiPost,
+  apiPut,
+  getAuthHeaders,
+  handleForbidden,
+} from "@/lib/api/client";
+import type {
+  CardUpdateInput,
+  Collection,
+  CreateCollectionInput,
+  Result,
+  ScanIdsInput,
+  ScannedCard,
+  UnmatchedCard,
+} from "@magic-vault/shared";
 import { queryOptions } from "@tanstack/react-query";
 
 export async function loadCollections(): Promise<Result<Collection[]>> {
@@ -21,10 +37,13 @@ export async function createCollection(
     name,
     gameGuid,
     lang,
-  });
+  } satisfies CreateCollectionInput);
 }
 
-export async function renameCollection(guid: string, name: string): Promise<Result<Collection[]>> {
+export async function renameCollection(
+  guid: string,
+  name: string,
+): Promise<Result<Collection[]>> {
   return apiPut<Result<Collection[]>>(`/api/collections/${guid}`, { name });
 }
 
@@ -39,15 +58,21 @@ export async function checkCollectionName(
   );
 }
 
-export async function activateCollection(guid: string): Promise<Result<Collection[]>> {
+export async function activateCollection(
+  guid: string,
+): Promise<Result<Collection[]>> {
   return apiPut<Result<Collection[]>>(`/api/collections/${guid}/active`);
 }
 
-export async function deleteCollection(guid: string): Promise<Result<Collection[]>> {
+export async function deleteCollection(
+  guid: string,
+): Promise<Result<Collection[]>> {
   return apiDelete<Result<Collection[]>>(`/api/collections/${guid}`);
 }
 
-export async function loadCollectionCards(guid: string): Promise<Result<ScannedCard[]>> {
+export async function loadCollectionCards(
+  guid: string,
+): Promise<Result<ScannedCard[]>> {
   return apiGet<Result<ScannedCard[]>>(`/api/collections/${guid}/cards`);
 }
 
@@ -72,7 +97,10 @@ export async function addCollectionCard(
 > {
   const res = await fetch(`${API_BASE}/api/collections/${guid}/cards`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...(await getAuthHeaders()) },
+    headers: {
+      "Content-Type": "application/json",
+      ...(await getAuthHeaders()),
+    },
     body: JSON.stringify(record),
   });
   await handleForbidden(res);
@@ -88,10 +116,13 @@ export async function updateCollectionCard(
   card: ScannedCard["card"],
   binNumber?: number,
 ): Promise<Result<ScannedCard>> {
-  return apiPut<Result<ScannedCard>>(`/api/collections/${guid}/cards/${scanId}`, {
-    card,
-    binNumber,
-  });
+  return apiPut<Result<ScannedCard>>(
+    `/api/collections/${guid}/cards/${scanId}`,
+    {
+      card,
+      binNumber,
+    } satisfies CardUpdateInput,
+  );
 }
 
 export async function setCollectionCardFoilType(
@@ -100,10 +131,13 @@ export async function setCollectionCardFoilType(
   isFoil: boolean,
   foilType: string | null,
 ): Promise<Result<ScannedCard>> {
-  return apiPut<Result<ScannedCard>>(`/api/collections/${guid}/cards/${scanId}`, {
-    isFoil,
-    foilType,
-  });
+  return apiPut<Result<ScannedCard>>(
+    `/api/collections/${guid}/cards/${scanId}`,
+    {
+      isFoil,
+      foilType,
+    } satisfies CardUpdateInput,
+  );
 }
 
 export async function removeCollectionCard(
@@ -117,17 +151,24 @@ export async function removeCollectionCards(
   guid: string,
   scanIds: string[],
 ): Promise<Result<null>> {
-  return apiPost<Result<null>>(`/api/collections/${guid}/cards/remove-bulk`, { scanIds });
+  return apiPost<Result<null>>(`/api/collections/${guid}/cards/remove-bulk`, {
+    scanIds,
+  } satisfies ScanIdsInput);
 }
 
 export async function markCollectionCardsDownloaded(
   guid: string,
   scanIds: string[],
 ): Promise<Result<null>> {
-  return apiPost<Result<null>>(`/api/collections/${guid}/cards/mark-downloaded`, { scanIds });
+  return apiPost<Result<null>>(
+    `/api/collections/${guid}/cards/mark-downloaded`,
+    { scanIds } satisfies ScanIdsInput,
+  );
 }
 
-export async function clearCollectionCards(guid: string): Promise<Result<null>> {
+export async function clearCollectionCards(
+  guid: string,
+): Promise<Result<null>> {
   return apiDelete<Result<null>>(`/api/collections/${guid}/cards`);
 }
 
@@ -135,7 +176,9 @@ export async function releaseScanLock(guid: string): Promise<Result<null>> {
   return apiDelete<Result<null>>(`/api/collections/${guid}/scan-lock`);
 }
 
-export async function loadUnmatchedCards(guid: string): Promise<Result<UnmatchedCard[]>> {
+export async function loadUnmatchedCards(
+  guid: string,
+): Promise<Result<UnmatchedCard[]>> {
   return apiGet<Result<UnmatchedCard[]>>(`/api/collections/${guid}/unmatched`);
 }
 
@@ -143,14 +186,19 @@ export async function addUnmatchedCard(
   guid: string,
   record: UnmatchedCard,
 ): Promise<Result<UnmatchedCard>> {
-  return apiPost<Result<UnmatchedCard>>(`/api/collections/${guid}/unmatched`, record);
+  return apiPost<Result<UnmatchedCard>>(
+    `/api/collections/${guid}/unmatched`,
+    record,
+  );
 }
 
 export async function removeUnmatchedCard(
   guid: string,
   scanId: string,
 ): Promise<Result<null>> {
-  return apiDelete<Result<null>>(`/api/collections/${guid}/unmatched/${scanId}`);
+  return apiDelete<Result<null>>(
+    `/api/collections/${guid}/unmatched/${scanId}`,
+  );
 }
 
 export async function clearUnmatchedCards(guid: string): Promise<Result<null>> {

@@ -1,4 +1,4 @@
-import type { BinConfig, BinRuleGroup } from "@magic-vault/shared";
+import type { BinConfig } from "@magic-vault/shared";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { authQuery } from "../../db";
@@ -38,7 +38,9 @@ export const emptyBinRoute = new Hono<AppEnv>().post(
         if (!activeBinSet)
           return { message: "No active set found.", success: false };
 
-        const existing = activeBinSet.bins.find((b) => b.binNumber === binNumber);
+        const existing = activeBinSet.bins.find(
+          (b) => b.binNumber === binNumber,
+        );
         if (!existing) return { message: "Bin not found.", success: false };
 
         await tx
@@ -66,7 +68,7 @@ export const emptyBinRoute = new Hono<AppEnv>().post(
             (b): BinConfig => ({
               guid: b.guid!,
               binNumber: b.binNumber,
-              rules: b.rules as BinRuleGroup,
+              rules: b.rules,
               isCatchAll: b.isCatchAll,
               isOverride: b.isOverride,
               cardLimit: b.cardLimit,

@@ -1,16 +1,9 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { useOrgLocal } from "@/features/companies/api/use-organization.local";
 import { apiGet } from "@/lib/api/client";
+import type { AuditEventRow } from "@magic-vault/shared";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-
-interface AuditEventRow {
-  id: string;
-  eventType: string;
-  actor: string | null;
-  target: string | null;
-  createdAt: string;
-}
 
 function formatDate(value: string): string {
   return new Date(value).toLocaleString(undefined, {

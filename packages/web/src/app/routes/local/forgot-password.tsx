@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -6,7 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { localPost } from "@/lib/auth/local-api";
@@ -18,7 +18,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 
-const schema = z.object({ email: z.string().email() });
+import { forgotPasswordSchema as schema } from "@magic-vault/shared";
 
 // Local-mode only. Always shows the same "if that email exists..." success
 // message regardless of what actually happened server-side - matches
@@ -34,7 +34,9 @@ export default function AuthForgotPasswordPage() {
   });
 
   async function onSubmit({ email }: z.infer<typeof schema>) {
-    await localPost("/api/local-auth/forgot-password", { email }).catch(() => {});
+    await localPost("/api/local-auth/forgot-password", { email }).catch(
+      () => {},
+    );
     setSent(true);
   }
 
@@ -51,7 +53,10 @@ export default function AuthForgotPasswordPage() {
         </CardHeader>
         {!sent && (
           <CardContent>
-            <form id="forgot-password-form" onSubmit={form.handleSubmit(onSubmit)}>
+            <form
+              id="forgot-password-form"
+              onSubmit={form.handleSubmit(onSubmit)}
+            >
               <Field data-invalid={!!form.formState.errors.email}>
                 <FieldLabel htmlFor="email">{t("local.emailLabel")}</FieldLabel>
                 <Input

@@ -1,4 +1,7 @@
-import type { ServoCalibration } from "@magic-vault/shared";
+import type {
+  ModuleConfigAuditEntry,
+  ServoCalibration,
+} from "@magic-vault/shared";
 import { Hono } from "hono";
 import { authQuery } from "../../db";
 import { requireAuth, requireOrg, type AppEnv } from "../../middleware/auth";
@@ -19,20 +22,22 @@ export const moduleConfigHistoryRoute = new Hono<AppEnv>().get(
         return {
           success: true,
           message: "Loaded history.",
-          data: rows.map((r) => ({
-            guid: r.guid!,
-            moduleNumber: r.moduleNumber,
-            calibration: {
-              bottomClosed: r.bottomClosed,
-              bottomOpen: r.bottomOpen,
-              paddleClosed: r.paddleClosed,
-              paddleOpen: r.paddleOpen,
-              pusherLeft: r.pusherLeft,
-              pusherNeutral: r.pusherNeutral,
-              pusherRight: r.pusherRight,
-            } satisfies ServoCalibration,
-            createdAt: r.createdAt.toISOString(),
-          })),
+          data: rows.map(
+            (r): ModuleConfigAuditEntry => ({
+              guid: r.guid!,
+              moduleNumber: r.moduleNumber,
+              calibration: {
+                bottomClosed: r.bottomClosed,
+                bottomOpen: r.bottomOpen,
+                paddleClosed: r.paddleClosed,
+                paddleOpen: r.paddleOpen,
+                pusherLeft: r.pusherLeft,
+                pusherNeutral: r.pusherNeutral,
+                pusherRight: r.pusherRight,
+              } satisfies ServoCalibration,
+              createdAt: r.createdAt.toISOString(),
+            }),
+          ),
         };
       });
       return c.json(result);

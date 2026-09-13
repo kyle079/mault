@@ -12,11 +12,8 @@ export interface CardContour {
   bottomLeft: Point;
 }
 
-export interface ScanRegion {
-  coverage: number; // 0-1
-  offsetX: number; // -0.5 to 0.5
-  offsetY: number; // -0.5 to 0.5
-}
+import type { ScanRegion } from "../schemas/organizations.schema";
+export type { ScanRegion } from "../schemas/organizations.schema";
 
 export const DEFAULT_SCAN_REGION: ScanRegion = {
   coverage: 0.85,
@@ -61,20 +58,4 @@ export interface CardMatch {
   distance: number;
 }
 
-export interface ScannedCard {
-  scanId: string;
-  card: PlayingCardWithDistance;
-  scannedAt: number;
-  binNumber?: number;
-  capturedImageUrl?: string;
-  alternativeMatches?: PlayingCardWithDistance[];
-  isFoil?: boolean;
-  foilType?: string;
-  isDownloaded?: boolean;
-}
-
-export interface UnmatchedCard {
-  scanId: string;
-  capturedImageUrl?: string;
-  scannedAt: number;
-}
+export type { ScannedCard, UnmatchedCard } from "../schemas/cards.schema";

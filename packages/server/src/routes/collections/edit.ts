@@ -1,26 +1,30 @@
+import { renameCollectionSchema } from "@magic-vault/shared";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { authQuery } from "../../db";
 import { collections } from "../../db/schema";
 import { emitToOrg } from "../../lib/session-stream";
 import { requireAuth, requireOrg, type AppEnv } from "../../middleware/auth";
+import { validateJson } from "../../middleware/validate-json";
 import { collectionNameTaken, loadCollections } from "./shared";
 
 export const editCollectionRoute = new Hono<AppEnv>().put(
   "/:guid",
   requireAuth,
   requireOrg,
+  validateJson(renameCollectionSchema),
   async (c) => {
     const orgId = c.get("orgId");
     const guid = c.req.param("guid");
-    const { name } = await c.req.json<{ name: string }>();
+    const { name } = c.req.valid("json");
     try {
       const result = await authQuery(c.get("jwtClaims"), async (tx) => {
         const target = await tx.query.collections.findFirst({
           where: (t, { eq, and }) => and(eq(t.guid, guid), eq(t.orgId, orgId)),
           columns: { id: true },
         });
-        if (!target) return { success: false, message: "Collection not found." };
+        if (!target)
+          return { success: false, message: "Collection not found." };
         if (await collectionNameTaken(tx, orgId, name, guid)) {
           return {
             success: false,

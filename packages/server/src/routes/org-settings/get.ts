@@ -3,6 +3,7 @@ import {
   DEFAULT_MODULE_COUNT,
   maxModulesForLayout,
   type ChannelLayout,
+  type OrgSettings,
 } from "@magic-vault/shared";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
@@ -57,7 +58,7 @@ export const getOrgSettingsRoute = new Hono<AppEnv>().get(
               row?.captureSettleDelayMs ?? DEFAULT_CAPTURE_SETTLE_DELAY_MS,
             moduleCount,
             channelLayout,
-          },
+          } satisfies OrgSettings,
         };
       });
       return c.json(result);

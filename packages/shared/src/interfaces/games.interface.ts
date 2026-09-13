@@ -1,12 +1,8 @@
-import type { FieldMeta } from "./sort-bins.interface";
+import type { GameInput } from "../schemas/games.schema";
+export type { GameInput } from "../schemas/games.schema";
 
-export interface Game {
+export interface Game extends Omit<Required<GameInput>, "apiDocsUrl"> {
   guid: string;
-  key: string;
-  name: string;
-  isActive: boolean;
-  fieldDefinitions: FieldMeta[];
-  foilTypes: string[];
   apiDocsUrl: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -27,4 +23,9 @@ export interface GameCoverage {
   cardCount: number;
   languages: string[];
   lastUpdated: string | null;
+}
+
+export interface SampleCard {
+  name: string;
+  raw: unknown;
 }

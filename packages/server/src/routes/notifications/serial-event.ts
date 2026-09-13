@@ -1,15 +1,17 @@
-import type { SerialEventReport } from "@magic-vault/shared";
+import { serialEventReportSchema } from "@magic-vault/shared";
 import { Hono } from "hono";
 import { sendDiscordNotification } from "../../lib/discord";
 import { classifySerialEvent } from "../../lib/serial-events";
 import { requireAuth, requireOrg, type AppEnv } from "../../middleware/auth";
+import { validateJson } from "../../middleware/validate-json";
 
 export const serialEventNotificationRoute = new Hono<AppEnv>().post(
   "/serial-event",
   requireAuth,
   requireOrg,
+  validateJson(serialEventReportSchema),
   async (c) => {
-    const event = await c.req.json<SerialEventReport>();
+    const event = c.req.valid("json");
     const classified = classifySerialEvent(event);
     if (classified) {
       const orgId = c.get("orgId");

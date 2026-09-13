@@ -1,18 +1,21 @@
+import { namedResourceSchema } from "@magic-vault/shared";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { authQuery } from "../../db";
 import { binSets } from "../../db/schema";
 import { requireAuth, requireOrg, type AppEnv } from "../../middleware/auth";
+import { validateJson } from "../../middleware/validate-json";
 import { binSetNameTaken, loadSets } from "./shared";
 
 export const editBinSetRoute = new Hono<AppEnv>().put(
   "/:guid",
   requireAuth,
   requireOrg,
+  validateJson(namedResourceSchema),
   async (c) => {
     const orgId = c.get("orgId");
     const guid = c.req.param("guid");
-    const { name } = await c.req.json<{ name: string }>();
+    const { name } = c.req.valid("json");
     try {
       const result = await authQuery(c.get("jwtClaims"), async (tx) => {
         const target = await tx.query.binSets.findFirst({

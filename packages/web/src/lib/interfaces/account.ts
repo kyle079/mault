@@ -1,13 +1,4 @@
-export interface ApiKey {
-  id: string;
-  keyPrefix: string;
-  name: string;
-  scopes: string[];
-  status: "active" | "revoked";
-  expiresAt: string | null;
-  lastUsedAt: string | null;
-  createdAt: string;
-}
+export type { ApiKey } from "@magic-vault/shared";
 
 export interface SessionRow {
   id: string;

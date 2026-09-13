@@ -1,19 +1,22 @@
+import { gameUpdateSchema } from "@magic-vault/shared";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { db } from "../../db";
 import { games } from "../../db/schema";
 import { ensureGameVectorIndex } from "../../lib/game-vector-index";
 import { requireAuth, requireRole, type AppEnv } from "../../middleware/auth";
-import { type GameInput, keyIsTaken, toGame } from "./shared";
+import { validateJson } from "../../middleware/validate-json";
+import { keyIsTaken, toGame } from "./shared";
 
 export const editGameRoute = new Hono<AppEnv>().put(
   "/:guid",
   requireAuth,
   requireRole("admin"),
+  validateJson(gameUpdateSchema),
   async (c) => {
     const guid = c.req.param("guid");
     const { key, name, fieldDefinitions, foilTypes, apiDocsUrl, isActive } =
-      await c.req.json<Partial<GameInput>>();
+      c.req.valid("json");
 
     try {
       const target = await db.query.games.findFirst({
@@ -60,7 +63,10 @@ export const editGameRoute = new Hono<AppEnv>().put(
       // Backstop for a race between the check above and this update.
       if (err instanceof Error && /unique/i.test(err.message)) {
         return c.json(
-          { success: false, message: `A game with key "${key}" already exists.` },
+          {
+            success: false,
+            message: `A game with key "${key}" already exists.`,
+          },
           409,
         );
       }

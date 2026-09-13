@@ -1,3 +1,4 @@
+import type { BinRouteAuditEntry } from "@magic-vault/shared";
 import { Hono } from "hono";
 import { authQuery } from "../../db";
 import { requireAuth, requireOrg, type AppEnv } from "../../middleware/auth";
@@ -19,11 +20,13 @@ export const binRouteHistoryRoute = new Hono<AppEnv>().get(
         return {
           success: true,
           message: "Loaded history.",
-          data: rows.map((r) => ({
-            guid: r.guid!,
-            route: toBinRoute(r),
-            createdAt: r.createdAt.toISOString(),
-          })),
+          data: rows.map(
+            (r): BinRouteAuditEntry => ({
+              guid: r.guid!,
+              route: toBinRoute(r),
+              createdAt: r.createdAt.toISOString(),
+            }),
+          ),
         };
       });
       return c.json(result);

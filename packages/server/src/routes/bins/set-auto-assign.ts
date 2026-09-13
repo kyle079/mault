@@ -1,18 +1,21 @@
+import { autoAssignSchema } from "@magic-vault/shared";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { authQuery } from "../../db";
 import { binSets } from "../../db/schema";
 import { requireAuth, requireOrg, type AppEnv } from "../../middleware/auth";
+import { validateJson } from "../../middleware/validate-json";
 import { loadSets, resetAutoAssignBins, snapshotBinSet } from "./shared";
 
 export const setAutoAssignRoute = new Hono<AppEnv>().put(
   "/:guid/auto-assign",
   requireAuth,
   requireOrg,
+  validateJson(autoAssignSchema),
   async (c) => {
     const orgId = c.get("orgId");
     const guid = c.req.param("guid");
-    const { field } = await c.req.json<{ field: string | null }>();
+    const { field } = c.req.valid("json");
     try {
       const result = await authQuery(c.get("jwtClaims"), async (tx) => {
         const target = await tx.query.binSets.findFirst({

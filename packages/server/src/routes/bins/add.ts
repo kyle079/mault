@@ -1,26 +1,30 @@
 import {
   computeBinCount,
+  createBinSetSchema,
   DEFAULT_BIN_CAPACITY,
-  type DefaultBinInit,
 } from "@magic-vault/shared";
 import { and, eq, isNull } from "drizzle-orm";
 import { Hono } from "hono";
 import { authQuery } from "../../db";
 import { bins, binSets } from "../../db/schema";
 import { requireAuth, requireOrg, type AppEnv } from "../../middleware/auth";
-import { binSetNameTaken, emptyRules, getModuleCount, loadSets, resolveGameId } from "./shared";
+import { validateJson } from "../../middleware/validate-json";
+import {
+  binSetNameTaken,
+  emptyRules,
+  getModuleCount,
+  loadSets,
+  resolveGameId,
+} from "./shared";
 
 export const addBinSetRoute = new Hono<AppEnv>().post(
   "/",
   requireAuth,
   requireOrg,
+  validateJson(createBinSetSchema),
   async (c) => {
     const orgId = c.get("orgId");
-    const { name, initialBins, gameGuid } = await c.req.json<{
-      name: string;
-      initialBins?: DefaultBinInit[];
-      gameGuid?: string;
-    }>();
+    const { name, initialBins, gameGuid } = c.req.valid("json");
     try {
       const nameTaken = await authQuery(c.get("jwtClaims"), async (tx) =>
         binSetNameTaken(tx, orgId, await resolveGameId(tx, gameGuid), name),

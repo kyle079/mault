@@ -3,30 +3,26 @@ import {
   DEFAULT_CAPTURE_SETTLE_DELAY_MS,
   DEFAULT_MODULE_COUNT,
   maxModulesForLayout,
+  orgSettingsUpdateSchema,
   type ChannelLayout,
+  type OrgSettings,
 } from "@magic-vault/shared";
 import { and, eq, gt } from "drizzle-orm";
 import { Hono } from "hono";
 import { authQuery } from "../../db";
 import { binRoutes, bins, moduleConfigs, orgSettings } from "../../db/schema";
 import { requireAuth, requireOrg, type AppEnv } from "../../middleware/auth";
+import { validateJson } from "../../middleware/validate-json";
 import { detectDefaultChannelLayout, toScanRegion } from "./shared";
 
 export const editOrgSettingsRoute = new Hono<AppEnv>().put(
   "/",
   requireAuth,
   requireOrg,
+  validateJson(orgSettingsUpdateSchema),
   async (c) => {
     const orgId = c.get("orgId");
-    const body = await c.req.json<{
-      primaryColor?: string | null;
-      scannerLayout?: string | null;
-      discordNotifyOnScan?: boolean;
-      scanRegion?: { coverage: number; offsetX: number; offsetY: number } | null;
-      captureSettleDelayMs?: number | null;
-      moduleCount?: number;
-      channelLayout?: ChannelLayout;
-    }>();
+    const body = c.req.valid("json");
     try {
       const result = await authQuery(c.get("jwtClaims"), async (tx) => {
         const existing = await tx.query.orgSettings.findFirst({
@@ -94,7 +90,8 @@ export const editOrgSettingsRoute = new Hono<AppEnv>().put(
             set: { ...merged, updatedAt: new Date() },
           });
 
-        const previousModuleCount = existing?.moduleCount ?? DEFAULT_MODULE_COUNT;
+        const previousModuleCount =
+          existing?.moduleCount ?? DEFAULT_MODULE_COUNT;
         if (merged.moduleCount < previousModuleCount) {
           const newBinCount = computeBinCount(merged.moduleCount);
           await tx
@@ -124,14 +121,16 @@ export const editOrgSettingsRoute = new Hono<AppEnv>().put(
           data: {
             primaryColor: merged.primaryColor,
             scannerLayout:
-              (merged.scannerLayout as "horizontal" | "vertical") ?? "horizontal",
+              (merged.scannerLayout as "horizontal" | "vertical") ??
+              "horizontal",
             discordNotifyOnScan: merged.discordNotifyOnScan,
+            discordGuildId: existing?.discordGuildId ?? null,
             scanRegion: toScanRegion(merged),
             captureSettleDelayMs:
               merged.captureSettleDelayMs ?? DEFAULT_CAPTURE_SETTLE_DELAY_MS,
             moduleCount: merged.moduleCount,
             channelLayout: merged.channelLayout,
-          },
+          } satisfies OrgSettings,
         };
       });
       return c.json(result);

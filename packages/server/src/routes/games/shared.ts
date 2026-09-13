@@ -1,4 +1,4 @@
-import type { FieldMeta, Game } from "@magic-vault/shared";
+import type { Game } from "@magic-vault/shared";
 import { db } from "../../db";
 import { games } from "../../db/schema";
 
@@ -8,24 +8,20 @@ export function toGame(row: typeof games.$inferSelect): Game {
     key: row.key,
     name: row.name,
     isActive: row.isActive,
-    fieldDefinitions: row.fieldDefinitions as FieldMeta[],
-    foilTypes: (row.foilTypes as string[] | null) ?? [],
+    fieldDefinitions: row.fieldDefinitions,
+    foilTypes: row.foilTypes,
     apiDocsUrl: row.apiDocsUrl,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
 }
 
-export interface GameInput {
-  key: string;
-  name: string;
-  fieldDefinitions: FieldMeta[];
-  foilTypes?: string[];
-  apiDocsUrl?: string | null;
-  isActive?: boolean;
-}
+export type { GameInput } from "@magic-vault/shared";
 
-export async function keyIsTaken(key: string, excludeGuid?: string): Promise<boolean> {
+export async function keyIsTaken(
+  key: string,
+  excludeGuid?: string,
+): Promise<boolean> {
   const existing = await db.query.games.findFirst({
     where: (t, { eq }) => eq(t.key, key),
     columns: { guid: true },

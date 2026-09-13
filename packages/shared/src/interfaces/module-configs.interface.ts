@@ -1,19 +1,15 @@
-export interface ServoCalibration {
-  bottomClosed: number;
-  bottomOpen: number;
-  paddleClosed: number;
-  paddleOpen: number;
-  pusherLeft: number;
-  pusherNeutral: number;
-  pusherRight: number;
-}
+import type {
+  ChannelLayout,
+  FeederCalibration,
+  ServoCalibration,
+} from "../schemas/calibration.schema";
+export type {
+  ChannelLayout,
+  FeederCalibration,
+  ModuleConfig,
+  ServoCalibration,
+} from "../schemas/calibration.schema";
 
-export interface ModuleConfig {
-  moduleNumber: number;
-  calibration: ServoCalibration;
-}
-
-export type ChannelLayout = "legacy" | "standard";
 export const DEFAULT_CHANNEL_LAYOUT: ChannelLayout = "standard";
 
 export const CHANNEL_OFFSET: Record<ChannelLayout, number> = {
@@ -38,14 +34,6 @@ export const DEFAULT_CALIBRATION: ServoCalibration = {
   pusherNeutral: 230,
   pusherRight: 300,
 };
-
-export interface FeederCalibration {
-  speed: number;
-  duration: number;
-  pulseDuration: number;
-  pauseDuration: number;
-  settleDuration: number;
-}
 
 export const DEFAULT_FEEDER_CALIBRATION: FeederCalibration = {
   speed: 250,

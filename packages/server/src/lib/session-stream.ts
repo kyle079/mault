@@ -1,9 +1,7 @@
 type SseWriter = (event: string, data: unknown) => void;
 
-export interface ViewerInfo {
-  userId: string;
-  displayName: string;
-}
+import type { SessionViewer as ViewerInfo } from "@magic-vault/shared";
+export type { SessionViewer as ViewerInfo } from "@magic-vault/shared";
 
 interface ViewerEntry extends ViewerInfo {
   writer: SseWriter;

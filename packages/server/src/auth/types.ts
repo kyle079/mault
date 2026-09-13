@@ -1,6 +1,6 @@
-import type { AdminUserSummary } from "@magic-vault/shared";
+import type { AdminUserSummary, OrgRole } from "@magic-vault/shared";
 
-export type OrgRole = "owner" | "admin" | "member";
+export type { OrgRole } from "@magic-vault/shared";
 
 // One implementation per AUTH_PROVIDER value (see ./neon.ts, ./local.ts,
 // ./index.ts). middleware/auth.ts's requireAuth/requireOrg call into these

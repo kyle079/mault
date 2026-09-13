@@ -11,6 +11,8 @@ import type {
   ImpersonationAuditEntry,
   ImpersonationSession,
   Result,
+  SyncInput,
+  CardSyncInput,
   SyncState,
 } from "@magic-vault/shared";
 
@@ -20,17 +22,22 @@ export async function listSyncSources(): Promise<{
   success: boolean;
   data: SyncSourceInfo[];
 }> {
-  return apiGet<{ success: boolean; data: SyncSourceInfo[] }>("/api/admin/sync/sources");
+  return apiGet<{ success: boolean; data: SyncSourceInfo[] }>(
+    "/api/admin/sync/sources",
+  );
 }
 
-export async function startSync(gameKey: string, lang: string = "en"): Promise<{
+export async function startSync(
+  gameKey: string,
+  lang: string = "en",
+): Promise<{
   success: boolean;
   data: SyncState;
 }> {
   return apiPost<{ success: boolean; data: SyncState }>("/api/admin/sync", {
     gameKey,
     lang,
-  });
+  } satisfies SyncInput);
 }
 
 export async function cancelSync(): Promise<{
@@ -71,7 +78,9 @@ export async function listCards(
 ): Promise<{ success: boolean; data: AdminCardsPage }> {
   const params = new URLSearchParams({ page: String(page), limit: "50" });
   if (search) params.set("search", search);
-  return apiGet<{ success: boolean; data: AdminCardsPage }>(`/api/admin/cards?${params}`);
+  return apiGet<{ success: boolean; data: AdminCardsPage }>(
+    `/api/admin/cards?${params}`,
+  );
 }
 
 export async function revectorizeCard(
@@ -87,11 +96,14 @@ export async function syncCardById(
   cardId: string,
   lang: string = "en",
 ): Promise<{ success: boolean; message: string }> {
-  return apiPost<{ success: boolean; message: string }>("/api/admin/cards/sync", {
-    gameKey,
-    cardId,
-    lang,
-  });
+  return apiPost<{ success: boolean; message: string }>(
+    "/api/admin/cards/sync",
+    {
+      gameKey,
+      cardId,
+      lang,
+    } satisfies CardSyncInput,
+  );
 }
 
 export async function createSyncEventSource(): Promise<EventSource> {

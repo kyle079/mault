@@ -6,11 +6,7 @@ import {
 } from "@magic-vault/shared";
 import type { Transaction } from "../../db";
 
-export type RouteRow = {
-  binNumber: number;
-  module: number;
-  direction: string;
-};
+export type RouteRow = Omit<BinRoute, "direction"> & { direction: string };
 
 export function toBinRoute(row: RouteRow): BinRoute {
   return {

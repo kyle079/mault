@@ -1,9 +1,11 @@
+import { createCollectionInputSchema } from "@magic-vault/shared";
 import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { authQuery } from "../../db";
 import { collections } from "../../db/schema";
 import { emitToOrg } from "../../lib/session-stream";
 import { requireAuth, requireOrg, type AppEnv } from "../../middleware/auth";
+import { validateJson } from "../../middleware/validate-json";
 import { collectionNameTaken, loadCollections } from "./shared";
 
 // POST /collections — create and activate
@@ -11,13 +13,10 @@ export const addCollectionRoute = new Hono<AppEnv>().post(
   "/",
   requireAuth,
   requireOrg,
+  validateJson(createCollectionInputSchema),
   async (c) => {
     const orgId = c.get("orgId");
-    const { name, gameGuid, lang } = await c.req.json<{
-      name: string;
-      gameGuid?: string;
-      lang?: string;
-    }>();
+    const { name, gameGuid, lang } = c.req.valid("json");
     try {
       const taken = await authQuery(c.get("jwtClaims"), (tx) =>
         collectionNameTaken(tx, orgId, name),

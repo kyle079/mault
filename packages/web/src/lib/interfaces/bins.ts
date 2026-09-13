@@ -3,6 +3,7 @@ import type {
   BinConfig,
   BinRuleGroup,
   BinSet,
+  BinUpdate,
   FieldMeta,
 } from "@magic-vault/shared";
 
@@ -21,13 +22,7 @@ export interface BinConfigsContextValue {
   selectedSet?: BinSet;
   setSelectedBin: (bin: number) => void;
   selectedConfig: BinConfig;
-  save: (
-    binNumber: number,
-    rules: BinRuleGroup,
-    isCatchAll?: boolean,
-    cardLimit?: number | null,
-    isOverride?: boolean,
-  ) => void;
+  save: (binNumber: number, settings: BinUpdate) => void;
   clear: (binNumber: number) => void;
   emptyBin: (binNumber: number) => Promise<void>;
   activateSet: (guid: string) => Promise<void>;

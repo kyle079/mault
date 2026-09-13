@@ -5,13 +5,8 @@ export const CONDITION_STRING_MAX_LENGTH = 200;
 export const CONDITION_NUMERIC_MAX = 100_000;
 export const DEFAULT_BIN_CAPACITY = 250;
 
-export type DefaultBinInit = {
-  binNumber: number;
-  rules: BinRuleGroup;
-  isCatchAll: boolean;
-  isOverride?: boolean;
-  cardLimit: number | null;
-};
+import type { DefaultBinInit } from "../schemas/bin-sets.schema";
+export type { DefaultBinInit } from "../schemas/bin-sets.schema";
 
 export function createDefaultCatchAllOnlyBins(
   binCount: number,

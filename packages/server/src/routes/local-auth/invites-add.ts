@@ -1,8 +1,11 @@
+import { orgInviteInputSchema } from "@magic-vault/shared";
 import { Hono } from "hono";
 import { authProvider } from "../../auth";
-import { inviteCaptureStorage, type InviteCapture } from "../../auth/invite-capture";
+import {
+  inviteCaptureStorage,
+  type InviteCapture,
+} from "../../auth/invite-capture";
 import { getOwnAuth } from "../../auth/own-auth-instance";
-import type { OrgRole } from "../../auth/types";
 import { getWebUrl } from "../../lib/constants/urls";
 import {
   requireAuth,
@@ -10,6 +13,7 @@ import {
   requireOrgRole,
   type AppEnv,
 } from "../../middleware/auth";
+import { validateJson } from "../../middleware/validate-json";
 import { authErrorResponse } from "./shared";
 
 // Org invites - code/link-based rather than requiring a real email provider
@@ -24,14 +28,9 @@ export const addInviteRoute = new Hono<AppEnv>().post(
   requireAuth,
   requireOrg,
   requireOrgRole("owner", "admin"),
+  validateJson(orgInviteInputSchema),
   async (c) => {
-    const { email, role } = await c.req.json<{
-      email?: string;
-      role?: OrgRole;
-    }>();
-    if (!email) {
-      return c.json({ success: false, message: "Email is required." }, 400);
-    }
+    const { email, role } = c.req.valid("json");
     try {
       const capture: InviteCapture = {};
       const result = await inviteCaptureStorage.run(capture, () =>
@@ -51,7 +50,10 @@ export const addInviteRoute = new Hono<AppEnv>().post(
         // server-side, so a tampered name in a hand-edited URL couldn't
         // grant access to a different org, only show a misleading label.
         const orgName = await authProvider.getOrganisationName(c.get("orgId"));
-        const params = new URLSearchParams({ token: capture.token, org: orgName });
+        const params = new URLSearchParams({
+          token: capture.token,
+          org: orgName,
+        });
         inviteUrl = `${webUrl}/auth/join?${params.toString()}`;
       }
       return c.json({

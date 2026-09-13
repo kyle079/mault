@@ -1,5 +1,4 @@
-import { z } from "zod";
-
-export const createApiKeySchema = z.object({ name: z.string().min(1) });
-
+import { createApiKeySchema } from "@magic-vault/shared";
+import type { z } from "zod";
+export { createApiKeySchema };
 export type CreateApiKeyFormValues = z.infer<typeof createApiKeySchema>;

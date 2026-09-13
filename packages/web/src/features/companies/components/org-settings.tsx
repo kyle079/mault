@@ -22,7 +22,7 @@ import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-type OrgRole = "owner" | "admin" | "member";
+import type { OrgRole } from "@magic-vault/shared";
 
 export function OrgSettings() {
   const { t } = useTranslation("companies");

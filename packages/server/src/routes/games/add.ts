@@ -1,24 +1,20 @@
+import { gameInputSchema } from "@magic-vault/shared";
 import { Hono } from "hono";
 import { db } from "../../db";
 import { games } from "../../db/schema";
 import { ensureGameVectorIndex } from "../../lib/game-vector-index";
 import { requireAuth, requireRole, type AppEnv } from "../../middleware/auth";
-import { type GameInput, keyIsTaken, toGame } from "./shared";
+import { validateJson } from "../../middleware/validate-json";
+import { keyIsTaken, toGame } from "./shared";
 
 export const addGameRoute = new Hono<AppEnv>().post(
   "/",
   requireAuth,
   requireRole("admin"),
+  validateJson(gameInputSchema),
   async (c) => {
     const { key, name, fieldDefinitions, foilTypes, apiDocsUrl, isActive } =
-      await c.req.json<GameInput>();
-
-    if (!key?.trim() || !name?.trim()) {
-      return c.json(
-        { success: false, message: "key and name are required." },
-        400,
-      );
-    }
+      c.req.valid("json");
 
     const trimmedKey = key.trim();
 

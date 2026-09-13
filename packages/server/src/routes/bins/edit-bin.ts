@@ -1,25 +1,26 @@
-import type { BinConfig, BinRuleGroup } from "@magic-vault/shared";
+import {
+  applyBinUpdate,
+  binUpdateSchema,
+  type BinConfig,
+} from "@magic-vault/shared";
 import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { authQuery } from "../../db";
 import { bins } from "../../db/schema";
 import { requireAuth, requireOrg, type AppEnv } from "../../middleware/auth";
+import { validateJson } from "../../middleware/validate-json";
 import { resolveGameId, snapshotBinSet } from "./shared";
 
 export const editBinRoute = new Hono<AppEnv>().put(
   "/bins/:binNumber",
   requireAuth,
   requireOrg,
+  validateJson(binUpdateSchema),
   async (c) => {
     const orgId = c.get("orgId");
     const binNumber = parseInt(c.req.param("binNumber"));
     const gameGuid = c.req.query("gameGuid");
-    const { rules, isCatchAll, isOverride, cardLimit } = await c.req.json<{
-      rules: BinRuleGroup;
-      isCatchAll?: boolean;
-      isOverride?: boolean;
-      cardLimit?: number | null;
-    }>();
+    const update = c.req.valid("json");
     try {
       const result = await authQuery(c.get("jwtClaims"), async (tx) => {
         const gameId = await resolveGameId(tx, gameGuid);
@@ -37,12 +38,17 @@ export const editBinRoute = new Hono<AppEnv>().put(
                   eq(binSets.orgId, orgId),
                 ),
           columns: { id: true, guid: true },
-          with: { bins: { columns: { id: true, binNumber: true } } },
+          with: { bins: true },
         });
         if (!activeBinSet)
           return { message: "No active set found.", success: false };
 
-        if (isCatchAll) {
+        const existing = activeBinSet.bins.find(
+          (b) => b.binNumber === binNumber,
+        );
+        const settings = applyBinUpdate(update, existing);
+
+        if (settings.isCatchAll) {
           await tx
             .update(bins)
             .set({ isCatchAll: false, updatedAt: new Date() })
@@ -51,26 +57,18 @@ export const editBinRoute = new Hono<AppEnv>().put(
             );
         }
 
-        const existing = activeBinSet.bins.find((b) => b.binNumber === binNumber);
-
         if (existing) {
           await tx
             .update(bins)
             .set({
-              rules,
-              isCatchAll: isCatchAll ?? false,
-              isOverride: !isCatchAll && isOverride === true,
-              cardLimit: cardLimit ?? null,
+              ...settings,
               updatedAt: new Date(),
             })
             .where(eq(bins.id, existing.id));
         } else {
           await tx.insert(bins).values({
             binNumber,
-            rules,
-            isCatchAll: isCatchAll ?? false,
-            isOverride: !isCatchAll && isOverride === true,
-            cardLimit: cardLimit ?? null,
+            ...settings,
             binSet: activeBinSet.id,
             orgId,
           });
@@ -98,7 +96,7 @@ export const editBinRoute = new Hono<AppEnv>().put(
             (b): BinConfig => ({
               guid: b.guid!,
               binNumber: b.binNumber,
-              rules: b.rules as BinRuleGroup,
+              rules: b.rules,
               isCatchAll: b.isCatchAll,
               isOverride: b.isOverride,
               cardLimit: b.cardLimit,

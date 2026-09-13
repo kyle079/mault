@@ -1,3 +1,9 @@
+import type {
+  BinConfig,
+  BinRuleGroup,
+  FieldMeta,
+  PlayingCardWithDistance,
+} from "@magic-vault/shared";
 import { sql } from "drizzle-orm";
 import { authenticatedRole, crudPolicy } from "drizzle-orm/neon/rls";
 import {
@@ -72,8 +78,8 @@ export const games = pgTable(
     guid: uuid("guid").defaultRandom(),
     key: text("key").notNull(),
     name: text("name").notNull(),
-    fieldDefinitions: jsonb("field_definitions").notNull(),
-    foilTypes: jsonb("foil_types").notNull().default([]),
+    fieldDefinitions: jsonb("field_definitions").$type<FieldMeta[]>().notNull(),
+    foilTypes: jsonb("foil_types").$type<string[]>().notNull().default([]),
     apiDocsUrl: text("api_docs_url"),
     isActive: boolean("is_active").notNull().default(true),
     createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -142,7 +148,7 @@ export const bins = pgTable(
   {
     id: serial().primaryKey(),
     guid: uuid("guid").defaultRandom(),
-    rules: jsonb("rules").notNull(),
+    rules: jsonb("rules").$type<BinRuleGroup>().notNull(),
     isCatchAll: boolean("is_catch_all").notNull().default(false),
     isOverride: boolean("is_override").notNull().default(false),
     binNumber: integer("bin_number").notNull(),
@@ -274,14 +280,16 @@ export const collectionCards = pgTable(
       .notNull()
       .references(() => collections.id, { onDelete: "cascade" }),
     cardId: text("card_id").notNull(),
-    card: jsonb("card").notNull(),
+    card: jsonb("card").$type<PlayingCardWithDistance>().notNull(),
     scannedAt: timestamp("scanned_at").notNull(),
     binNumber: integer("bin_number"),
     capturedImageDataUrl: text("captured_image_data_url"),
     isFoil: boolean("is_foil").notNull().default(false),
     foilType: text("foil_type"),
     isDownloaded: boolean("is_downloaded").notNull().default(false),
-    alternativeMatches: jsonb("alternative_matches"),
+    alternativeMatches: jsonb("alternative_matches").$type<
+      PlayingCardWithDistance[]
+    >(),
     orgId: text("org_id").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
@@ -389,7 +397,7 @@ export const binSetAudit = pgTable(
     id: serial().primaryKey(),
     guid: uuid("guid").defaultRandom(),
     binSetGuid: text("bin_set_guid").notNull(),
-    snapshot: jsonb("snapshot").notNull(),
+    snapshot: jsonb("snapshot").$type<BinConfig[]>().notNull(),
     orgId: text("org_id").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },

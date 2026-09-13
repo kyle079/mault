@@ -1,10 +1,11 @@
-import type { PlayingCardWithDistance } from "@magic-vault/shared";
+import { cardUpdateSchema } from "@magic-vault/shared";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { authQuery } from "../../db";
 import { collectionCards } from "../../db/schema";
 import { emitToSession } from "../../lib/session-stream";
 import { requireAuth, requireOrg, type AppEnv } from "../../middleware/auth";
+import { validateJson } from "../../middleware/validate-json";
 import { toScannedCard } from "./shared";
 
 // PUT /collections/:guid/cards/:scanId — update card (correction and/or foil status)
@@ -12,19 +13,16 @@ export const editCollectionCardRoute = new Hono<AppEnv>().put(
   "/:guid/cards/:scanId",
   requireAuth,
   requireOrg,
+  validateJson(cardUpdateSchema),
   async (c) => {
     const orgId = c.get("orgId");
     const { guid, scanId } = c.req.param();
-    const { card, binNumber, isFoil, foilType } = await c.req.json<{
-      card?: PlayingCardWithDistance;
-      binNumber?: number;
-      isFoil?: boolean;
-      foilType?: string | null;
-    }>();
+    const { card, binNumber, isFoil, foilType } = c.req.valid("json");
     try {
       const result = await authQuery(c.get("jwtClaims"), async (tx) => {
         const existing = await tx.query.collectionCards.findFirst({
-          where: (t, { eq, and }) => and(eq(t.guid, scanId), eq(t.orgId, orgId)),
+          where: (t, { eq, and }) =>
+            and(eq(t.guid, scanId), eq(t.orgId, orgId)),
           columns: {
             id: true,
             scannedAt: true,
@@ -54,7 +52,7 @@ export const editCollectionCardRoute = new Hono<AppEnv>().put(
           success: true,
           data: toScannedCard({
             guid: scanId,
-            card: (card ?? existing.card) as PlayingCardWithDistance,
+            card: card ?? existing.card,
             scannedAt: existing.scannedAt,
             binNumber:
               card !== undefined ? (binNumber ?? null) : existing.binNumber,

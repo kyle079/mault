@@ -1,35 +1,34 @@
+import {
+  announcementUpdateSchema,
+  hasValidAnnouncementDates,
+} from "@magic-vault/shared";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { db } from "../../db";
 import { announcements } from "../../db/schema";
-import { ANNOUNCEMENT_SEVERITIES as SEVERITIES } from "../../lib/constants/announcements";
 import { requireAuth, requireRole, type AppEnv } from "../../middleware/auth";
-import { type AnnouncementInput, toAnnouncement } from "./shared";
+import { validateJson } from "../../middleware/validate-json";
+import { toAnnouncement } from "./shared";
 
 export const editAnnouncementRoute = new Hono<AppEnv>().put(
   "/:guid",
   requireAuth,
   requireRole("admin"),
+  validateJson(announcementUpdateSchema),
   async (c) => {
     const guid = c.req.param("guid");
     const { severity, message, isActive, startsAt, endsAt } =
-      await c.req.json<Partial<AnnouncementInput>>();
-
-    if (severity !== undefined && !SEVERITIES.includes(severity)) {
-      return c.json({ success: false, message: "Invalid severity." }, 400);
-    }
+      c.req.valid("json");
 
     const startsAtDate =
-      startsAt !== undefined ? (startsAt ? new Date(startsAt) : null) : undefined;
+      startsAt !== undefined
+        ? startsAt
+          ? new Date(startsAt)
+          : null
+        : undefined;
     const endsAtDate =
       endsAt !== undefined ? (endsAt ? new Date(endsAt) : null) : undefined;
-    if (startsAtDate && Number.isNaN(startsAtDate.getTime())) {
-      return c.json({ success: false, message: "Invalid start time." }, 400);
-    }
-    if (endsAtDate && Number.isNaN(endsAtDate.getTime())) {
-      return c.json({ success: false, message: "Invalid end time." }, 400);
-    }
-    if (startsAtDate && endsAtDate && endsAtDate <= startsAtDate) {
+    if (!hasValidAnnouncementDates({ startsAt, endsAt })) {
       return c.json(
         { success: false, message: "End time must be after start time." },
         400,
@@ -42,7 +41,10 @@ export const editAnnouncementRoute = new Hono<AppEnv>().put(
         columns: { id: true },
       });
       if (!target)
-        return c.json({ success: false, message: "Announcement not found." }, 404);
+        return c.json(
+          { success: false, message: "Announcement not found." },
+          404,
+        );
 
       const updates: Partial<typeof announcements.$inferInsert> = {
         updatedAt: new Date(),

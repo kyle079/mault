@@ -1,3 +1,4 @@
+import type { BillingStatus } from "@magic-vault/shared";
 import { and, eq, gte, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { authQuery } from "../../db";
@@ -41,10 +42,10 @@ export const getBillingRoute = new Hono<AppEnv>().get(
             plan,
             status: billing?.status ?? null,
             cancelAtPeriodEnd: billing?.cancelAtPeriodEnd ?? false,
-            currentPeriodEnd: billing?.currentPeriodEnd ?? null,
+            currentPeriodEnd: billing?.currentPeriodEnd?.toISOString() ?? null,
             cardsScannedToday: count,
             dailyLimit: plan === "business" ? null : FREE_PLAN_DAILY_SCAN_LIMIT,
-          },
+          } satisfies BillingStatus,
         };
       });
       return c.json(result);

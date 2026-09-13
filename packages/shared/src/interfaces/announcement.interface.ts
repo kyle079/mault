@@ -1,10 +1,14 @@
-export type AnnouncementSeverity = "info" | "warning" | "danger";
+import type { AnnouncementInput } from "../schemas/announcements.schema";
+export type {
+  AnnouncementInput,
+  AnnouncementSeverity,
+} from "../schemas/announcements.schema";
 
-export interface Announcement {
+export interface Announcement extends Omit<
+  Required<AnnouncementInput>,
+  "startsAt" | "endsAt"
+> {
   guid: string;
-  severity: AnnouncementSeverity;
-  message: string;
-  isActive: boolean;
   startsAt: Date | null;
   endsAt: Date | null;
   createdAt: Date;

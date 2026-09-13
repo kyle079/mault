@@ -1,20 +1,19 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { copyBinSetSchema } from "@magic-vault/shared";
 import { Hono } from "hono";
 import { authQuery } from "../../db";
 import { bins, binSets } from "../../db/schema";
 import { requireAuth, requireOrg, type AppEnv } from "../../middleware/auth";
+import { validateJson } from "../../middleware/validate-json";
 import { binSetNameTaken, loadSets, resolveGameId } from "./shared";
 
 export const copyBinSetRoute = new Hono<AppEnv>().post(
   "/copies",
   requireAuth,
   requireOrg,
+  validateJson(copyBinSetSchema),
   async (c) => {
     const orgId = c.get("orgId");
-    const { name, gameGuid } = await c.req.json<{
-      name: string;
-      gameGuid?: string;
-    }>();
+    const { name, gameGuid } = c.req.valid("json");
     try {
       const nameTaken = await authQuery(c.get("jwtClaims"), async (tx) =>
         binSetNameTaken(tx, orgId, await resolveGameId(tx, gameGuid), name),

@@ -12,15 +12,16 @@ import { Switch } from "@/components/ui/switch";
 import { useBinConfigs } from "@/features/bins/api/use-bin-configs";
 import { RuleGroupEditor } from "@/features/bins/components/rule-group-editor";
 import { RuleSummary } from "@/features/bins/components/rule-summary";
-import {
-  binConfigSchema,
-  type BinConfigFormValues,
-} from "@/schemas/sort-bins.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { BinRuleGroup, DEFAULT_BIN_CAPACITY } from "@magic-vault/shared";
+import {
+  binSettingsSchema,
+  DEFAULT_BIN_CAPACITY,
+  type BinRuleGroup,
+  type BinSettings,
+} from "@magic-vault/shared";
 import { IconLoader2 } from "@tabler/icons-react";
 import { useCallback, useEffect } from "react";
-import { Controller, useForm, type Resolver } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
 function emptyRuleGroup(): BinRuleGroup {
@@ -45,8 +46,8 @@ export function BinConfigPanel() {
     fieldDefinitions.find((f) => f.field === autoAssignField)?.label ??
     autoAssignField;
 
-  const form = useForm<BinConfigFormValues>({
-    resolver: zodResolver(binConfigSchema) as Resolver<BinConfigFormValues>,
+  const form = useForm<BinSettings>({
+    resolver: zodResolver(binSettingsSchema),
     defaultValues: {
       isCatchAll: false,
       isOverride: false,
@@ -62,7 +63,9 @@ export function BinConfigPanel() {
       rules:
         config.rules.conditions.length > 0 ? config.rules : emptyRuleGroup(),
       cardLimit:
-        config.cardLimit === undefined ? DEFAULT_BIN_CAPACITY : config.cardLimit,
+        config.cardLimit === undefined
+          ? DEFAULT_BIN_CAPACITY
+          : config.cardLimit,
     });
   }, [config, form]);
 
@@ -72,20 +75,14 @@ export function BinConfigPanel() {
       .length === 0;
 
   const handleSave = useCallback(
-    (values: BinConfigFormValues) => {
+    (values: BinSettings) => {
       if (!values.isCatchAll && isOnlyCatchAll) {
         form.setError("isCatchAll", {
           message: t("binConfigPanel.needCatchAllError"),
         });
         return;
       }
-      save(
-        config.binNumber,
-        values.rules as BinRuleGroup,
-        values.isCatchAll,
-        values.cardLimit,
-        !values.isCatchAll && values.isOverride,
-      );
+      save(config.binNumber, values);
     },
     [config, save, isOnlyCatchAll, form, t],
   );
@@ -159,10 +156,7 @@ export function BinConfigPanel() {
           )}
         />
       </div>
-      <Field
-        className="mb-6"
-        data-invalid={!!form.formState.errors.cardLimit}
-      >
+      <Field className="mb-6" data-invalid={!!form.formState.errors.cardLimit}>
         <FieldLabel htmlFor="bin-card-limit">
           {t("binConfigPanel.cardLimitLabel")}
         </FieldLabel>
@@ -244,7 +238,7 @@ export function BinConfigPanel() {
               control={form.control}
               render={({ field }) => (
                 <RuleGroupEditor
-                  group={field.value as BinRuleGroup}
+                  group={field.value}
                   onChange={field.onChange}
                 />
               )}

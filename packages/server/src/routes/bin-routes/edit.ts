@@ -1,21 +1,28 @@
-import type { BinRoute } from "@magic-vault/shared";
+import { binRouteSchema } from "@magic-vault/shared";
 import { Hono } from "hono";
 import { authQuery } from "../../db";
 import { binRouteAudit, binRoutes } from "../../db/schema";
 import { requireAuth, requireOrg, type AppEnv } from "../../middleware/auth";
+import { validateJson } from "../../middleware/validate-json";
 import { buildRoutes } from "./shared";
 
 export const editBinRouteRoute = new Hono<AppEnv>().put(
   "/:binNumber",
   requireAuth,
   requireOrg,
+  validateJson(binRouteSchema),
   async (c) => {
     const orgId = c.get("orgId");
     const binNumber = parseInt(c.req.param("binNumber"));
-    const route = await c.req.json<BinRoute>();
+    const route = c.req.valid("json");
     try {
       const result = await authQuery(c.get("jwtClaims"), async (tx) => {
-        const values = { binNumber, module: route.module, direction: route.direction, orgId };
+        const values = {
+          binNumber,
+          module: route.module,
+          direction: route.direction,
+          orgId,
+        };
 
         await tx
           .insert(binRoutes)
@@ -30,7 +37,11 @@ export const editBinRouteRoute = new Hono<AppEnv>().put(
         const rows = await tx.query.binRoutes.findMany({
           where: (t, { eq }) => eq(t.orgId, orgId),
         });
-        return { success: true, message: "Saved bin route.", data: await buildRoutes(tx, orgId, rows) };
+        return {
+          success: true,
+          message: "Saved bin route.",
+          data: await buildRoutes(tx, orgId, rows),
+        };
       });
       return c.json(result);
     } catch (err) {

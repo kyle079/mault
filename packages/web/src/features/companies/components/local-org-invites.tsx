@@ -19,19 +19,12 @@ import {
   type OrgInviteFormValues,
 } from "@/schemas/companies.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { Invitation } from "@magic-vault/shared";
 import { IconCopy, IconMailPlus, IconPlus } from "@tabler/icons-react";
 import { useCallback, useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-
-interface Invitation {
-  id: string;
-  email: string;
-  role: "owner" | "admin" | "member";
-  status: string;
-  expiresAt: string;
-}
 
 function formatDate(value: string): string {
   return new Date(value).toLocaleDateString(undefined, {

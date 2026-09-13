@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -6,11 +7,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { localPost } from "@/lib/auth/local-api";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { resetPasswordSchema } from "@magic-vault/shared";
 import { IconLoader2 } from "@tabler/icons-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -20,7 +21,7 @@ import { z } from "zod";
 
 const schema = z
   .object({
-    password: z.string().min(8),
+    password: resetPasswordSchema.shape.newPassword,
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {

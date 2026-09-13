@@ -1,4 +1,5 @@
 import type { PlayingCardWithDistance, ScannedCard } from "@magic-vault/shared";
+import { scannedCardSchema } from "@magic-vault/shared";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { authQuery } from "../../db";
@@ -6,7 +7,13 @@ import { collectionCards, collections } from "../../db/schema";
 import { acquireLock } from "../../lib/scan-lock";
 import { emitToOrg, emitToSession } from "../../lib/session-stream";
 import { FREE_PLAN_DAILY_SCAN_LIMIT } from "../../lib/stripe";
-import { getUserDisplayName, requireAuth, requireOrg, type AppEnv } from "../../middleware/auth";
+import {
+  getUserDisplayName,
+  requireAuth,
+  requireOrg,
+  type AppEnv,
+} from "../../middleware/auth";
+import { validateJson } from "../../middleware/validate-json";
 import { findFullBin } from "./bin-limit";
 import { notifyCardScanned } from "./notify-card-scanned";
 import { isOverFreeScanLimit } from "./scan-limit";
@@ -15,6 +22,7 @@ export const addCollectionCardRoute = new Hono<AppEnv>().post(
   "/:guid/cards",
   requireAuth,
   requireOrg,
+  validateJson(scannedCardSchema),
   async (c) => {
     const guid = c.req.param("guid");
     const userId = c.get("userId");
@@ -28,7 +36,7 @@ export const addCollectionCardRoute = new Hono<AppEnv>().post(
       isFoil,
       foilType,
       alternativeMatches,
-    } = await c.req.json<ScannedCard>();
+    } = c.req.valid("json");
 
     const displayName = await getUserDisplayName(userId);
     const { ok: lockOk, isNewSession } = acquireLock(

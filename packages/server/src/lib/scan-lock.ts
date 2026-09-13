@@ -3,11 +3,8 @@ import { db } from "../db";
 import { orgSettings } from "../db/schema";
 import { SCAN_LOCK_TTL_MS as LOCK_TTL_MS } from "./constants/timing";
 
-export interface ScanLock {
-  userId: string;
-  displayName: string;
-  expiresAt: number;
-}
+import type { ScanLockInfo as ScanLock } from "@magic-vault/shared";
+export type { ScanLockInfo as ScanLock } from "@magic-vault/shared";
 
 export interface AcquireLockResult {
   ok: boolean;

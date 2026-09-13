@@ -1,13 +1,17 @@
 import type {
   Collection,
   FieldMeta,
-  PlayingCardWithDistance,
   ScannedCard,
   UnmatchedCard,
 } from "@magic-vault/shared";
 import { count, desc, eq, sql } from "drizzle-orm";
 import type { Transaction } from "../../db";
-import { collectionCards, collections, games } from "../../db/schema";
+import {
+  collectionCards,
+  collections,
+  games,
+  unmatchedCards,
+} from "../../db/schema";
 
 export function toCollection(row: {
   guid: string | null;
@@ -51,36 +55,39 @@ export function toCollection(row: {
   };
 }
 
-export function toScannedCard(row: {
-  guid: string | null;
-  card: unknown;
-  scannedAt: Date;
-  binNumber: number | null;
-  capturedImageDataUrl?: string | null;
-  isFoil?: boolean | null;
-  foilType?: string | null;
-  isDownloaded?: boolean | null;
-  alternativeMatches?: unknown;
-}): ScannedCard {
+type CollectionCardRow = typeof collectionCards.$inferSelect;
+export function toScannedCard(
+  row: Pick<CollectionCardRow, "guid" | "card" | "scannedAt" | "binNumber"> &
+    Partial<
+      Pick<
+        CollectionCardRow,
+        | "capturedImageDataUrl"
+        | "isFoil"
+        | "foilType"
+        | "isDownloaded"
+        | "alternativeMatches"
+      >
+    >,
+): ScannedCard {
   return {
     scanId: row.guid!,
-    card: row.card as PlayingCardWithDistance,
+    card: row.card,
     scannedAt: row.scannedAt.getTime(),
     binNumber: row.binNumber ?? undefined,
     capturedImageUrl: row.capturedImageDataUrl ?? undefined,
     isFoil: row.isFoil ?? undefined,
     foilType: row.foilType ?? undefined,
     isDownloaded: row.isDownloaded ?? undefined,
-    alternativeMatches:
-      (row.alternativeMatches as PlayingCardWithDistance[] | null) ?? undefined,
+    alternativeMatches: row.alternativeMatches ?? undefined,
   };
 }
 
-export function toUnmatchedCard(row: {
-  guid: string | null;
-  capturedImageDataUrl: string | null;
-  scannedAt: Date;
-}): UnmatchedCard {
+export function toUnmatchedCard(
+  row: Pick<
+    typeof unmatchedCards.$inferSelect,
+    "guid" | "capturedImageDataUrl" | "scannedAt"
+  >,
+): UnmatchedCard {
   return {
     scanId: row.guid!,
     capturedImageUrl: row.capturedImageDataUrl ?? undefined,

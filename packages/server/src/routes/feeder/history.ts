@@ -1,4 +1,7 @@
-import type { FeederCalibration } from "@magic-vault/shared";
+import type {
+  FeederCalibration,
+  FeederConfigAuditEntry,
+} from "@magic-vault/shared";
 import { Hono } from "hono";
 import { authQuery } from "../../db";
 import { requireAuth, requireOrg, type AppEnv } from "../../middleware/auth";
@@ -20,11 +23,13 @@ export const feederHistoryRoute = new Hono<AppEnv>().get(
         return {
           success: true,
           message: "Loaded history.",
-          data: rows.map((r) => ({
-            guid: r.guid!,
-            calibration: rowToCalibration(r) satisfies FeederCalibration,
-            createdAt: r.createdAt.toISOString(),
-          })),
+          data: rows.map(
+            (r): FeederConfigAuditEntry => ({
+              guid: r.guid!,
+              calibration: rowToCalibration(r) satisfies FeederCalibration,
+              createdAt: r.createdAt.toISOString(),
+            }),
+          ),
         };
       });
       return c.json(result);
