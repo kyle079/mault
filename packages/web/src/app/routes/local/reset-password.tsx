@@ -11,6 +11,7 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { localPost } from "@/lib/auth/local-api";
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { ApiResult } from "@magic-vault/shared";
 import { resetPasswordSchema } from "@magic-vault/shared";
 import { IconLoader2 } from "@tabler/icons-react";
 import { useState } from "react";
@@ -50,10 +51,10 @@ export default function AuthResetPasswordPage() {
     if (!token) return;
     setServerError(null);
     try {
-      const res = await localPost<{ success: boolean; message?: string }>(
-        "/api/local-auth/reset-password",
-        { token, newPassword: password },
-      );
+      const res = await localPost<ApiResult>("/api/local-auth/reset-password", {
+        token,
+        newPassword: password,
+      });
       if (!res.success) {
         setServerError(res.message ?? t("local.resetPasswordFailed"));
         return;

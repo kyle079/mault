@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -6,9 +7,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { useAuthSession, savePendingInviteToken } from "@/lib/auth";
+import { savePendingInviteToken, useAuthSession } from "@/lib/auth";
 import { localPost } from "@/lib/auth/local-api";
+import type { ApiResult } from "@magic-vault/shared";
 import { IconLoader2 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -36,10 +37,7 @@ export default function AuthJoinPage() {
   useEffect(() => {
     if (!token || isPending || !data?.user || accepting) return;
     setAccepting(true);
-    localPost<{ success: boolean; message?: string }>(
-      "/api/local-auth/invites/accept",
-      { token },
-    )
+    localPost<ApiResult>("/api/local-auth/invites/accept", { token })
       .then((res) => {
         if (!res.success) {
           setError(res.message ?? t("local.joinFailed"));
@@ -64,7 +62,9 @@ export default function AuthJoinPage() {
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>
-            {orgName ? t("local.joinTitleWithOrg", { org: orgName }) : t("local.joinTitle")}
+            {orgName
+              ? t("local.joinTitleWithOrg", { org: orgName })
+              : t("local.joinTitle")}
           </CardTitle>
           <CardDescription>
             {!token

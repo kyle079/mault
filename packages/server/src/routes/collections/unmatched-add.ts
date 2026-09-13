@@ -42,7 +42,8 @@ export const addUnmatchedCardRoute = new Hono<AppEnv>().post(
           data: { scanId, capturedImageUrl, scannedAt } as UnmatchedCard,
         };
       });
-      if (result.success) emitToSession(guid, "unmatched_added", result.data);
+      if (result.success && result.data)
+        emitToSession(guid, "unmatched_added", result.data);
       return c.json(result);
     } catch (err) {
       console.error(err);

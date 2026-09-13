@@ -1,5 +1,6 @@
 import { apiGet } from "@/lib/api/client";
 import type { LocalSessionUser } from "@/lib/interfaces/auth";
+import type { ApiResult } from "@magic-vault/shared";
 import { useSyncExternalStore } from "react";
 import { getLocalToken } from "./local-token";
 
@@ -28,7 +29,7 @@ async function load() {
     return;
   }
   try {
-    const res = await apiGet<{ success: boolean; data?: LocalSessionUser }>(
+    const res = await apiGet<ApiResult<LocalSessionUser>>(
       "/api/local-auth/session",
     );
     set({

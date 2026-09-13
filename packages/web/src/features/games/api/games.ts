@@ -1,6 +1,7 @@
 import { apiDelete, apiGet, apiPost, apiPut } from "@/lib/api/client";
 import type { GameInput, SampleCard } from "@/lib/interfaces/games";
 import type {
+  Availability,
   Game,
   GameCoverage,
   Result,
@@ -19,7 +20,9 @@ export const gamesQueryOptions = queryOptions({
   staleTime: Infinity,
 });
 
-export async function listGameLanguages(guid: string): Promise<Result<string[]>> {
+export async function listGameLanguages(
+  guid: string,
+): Promise<Result<string[]>> {
   return apiGet<Result<string[]>>(`/api/games/${guid}/languages`);
 }
 
@@ -59,10 +62,10 @@ export async function deleteGame(guid: string): Promise<Result<null>> {
 export async function checkGameKey(
   key: string,
   excludeGuid?: string,
-): Promise<Result<{ available: boolean }>> {
+): Promise<Result<Availability>> {
   const params = new URLSearchParams({ key });
   if (excludeGuid) params.set("excludeGuid", excludeGuid);
-  return apiGet<Result<{ available: boolean }>>(
+  return apiGet<Result<Availability>>(
     `/api/games/check-key?${params.toString()}`,
   );
 }

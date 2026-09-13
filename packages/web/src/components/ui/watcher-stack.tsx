@@ -1,7 +1,11 @@
 import { InitialsAvatar, getInitials } from "@/components/ui/initials-avatar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { MAX_WATCHER_STACK as MAX_STACK } from "@/lib/constants/limits";
-import type { SessionViewer } from "@/lib/interfaces/collections";
+import type { SessionViewer } from "@magic-vault/shared";
 
 export function WatcherStack({ watchers }: { watchers: SessionViewer[] }) {
   if (watchers.length === 0) return null;
@@ -35,7 +39,10 @@ export function WatcherStack({ watchers }: { watchers: SessionViewer[] }) {
           Watching
         </p>
         {watchers.map((w) => (
-          <div key={w.userId} className="flex items-center gap-2 px-1.5 py-1 rounded hover:bg-accent">
+          <div
+            key={w.userId}
+            className="flex items-center gap-2 px-1.5 py-1 rounded hover:bg-accent"
+          >
             <InitialsAvatar name={w.displayName} variant="watcher" size="sm" />
             <span className="text-xs">{w.displayName}</span>
           </div>

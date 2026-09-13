@@ -2,15 +2,9 @@ import { collectionsQueryOptions } from "@/features/collections/api/collections"
 import { createLiveCountEventsSource } from "@/lib/api/session";
 import { useAuthSession } from "@/lib/auth";
 import { ACTIVE_ORG_STORAGE_KEY } from "@/lib/constants/storage-keys";
-import type { SessionViewer } from "@/lib/interfaces/collections";
+import type { OrgEvents, SessionViewer } from "@magic-vault/shared";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 
 export type { SessionViewer };
 
@@ -58,20 +52,17 @@ export function LiveSessionStatusProvider({
         esRef.current = es;
 
         es.addEventListener("init", (e) => {
-          const { counts: initialCounts, viewers: initialViewers } =
-            JSON.parse((e as MessageEvent).data) as {
-              counts: Record<string, number>;
-              viewers: Record<string, SessionViewer[]>;
-            };
+          const { counts: initialCounts, viewers: initialViewers } = JSON.parse(
+            (e as MessageEvent).data,
+          ) as OrgEvents["init"];
           setCounts(initialCounts);
           setViewersByGuid(initialViewers);
         });
 
         es.addEventListener("live_count", (e) => {
-          const { guid, count } = JSON.parse((e as MessageEvent).data) as {
-            guid: string;
-            count: number;
-          };
+          const { guid, count } = JSON.parse(
+            (e as MessageEvent).data,
+          ) as OrgEvents["live_count"];
           setCounts((prev) => {
             if (count <= 0) {
               const next = { ...prev };
@@ -83,10 +74,9 @@ export function LiveSessionStatusProvider({
         });
 
         es.addEventListener("session_viewers", (e) => {
-          const { guid, viewers } = JSON.parse((e as MessageEvent).data) as {
-            guid: string;
-            viewers: SessionViewer[];
-          };
+          const { guid, viewers } = JSON.parse(
+            (e as MessageEvent).data,
+          ) as OrgEvents["session_viewers"];
           setViewersByGuid((prev) => {
             if (viewers.length === 0) {
               const next = { ...prev };

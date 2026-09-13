@@ -1,7 +1,7 @@
 import { createLockEventsSource } from "@/lib/api/session";
 import { useAuthSession } from "@/lib/auth";
 import { ACTIVE_ORG_STORAGE_KEY } from "@/lib/constants/storage-keys";
-import type { ScanLockInfo } from "@/lib/interfaces/collections";
+import type { LockEvents, ScanLockInfo } from "@magic-vault/shared";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 
 export type { ScanLockInfo };
@@ -50,16 +50,16 @@ export function CollectionLocksProvider({
         esRef.current = es;
 
         es.addEventListener("init", (e) => {
-          const { locks: initial } = JSON.parse((e as MessageEvent).data) as {
-            locks: Record<string, ScanLockInfo>;
-          };
+          const { locks: initial } = JSON.parse(
+            (e as MessageEvent).data,
+          ) as LockEvents["init"];
           setLocks(initial);
         });
 
         es.addEventListener("lock_acquired", (e) => {
           const { guid, userId, displayName } = JSON.parse(
             (e as MessageEvent).data,
-          ) as { guid: string; userId: string; displayName: string };
+          ) as LockEvents["lock_acquired"];
           setLocks((prev) => ({
             ...prev,
             [guid]: {
@@ -71,9 +71,9 @@ export function CollectionLocksProvider({
         });
 
         es.addEventListener("lock_released", (e) => {
-          const { guid } = JSON.parse((e as MessageEvent).data) as {
-            guid: string;
-          };
+          const { guid } = JSON.parse(
+            (e as MessageEvent).data,
+          ) as LockEvents["lock_released"];
           setLocks((prev) => {
             const next = { ...prev };
             delete next[guid];

@@ -3,70 +3,49 @@ import { getAuthSession } from "@/lib/auth/session";
 import type {
   AdminCard,
   AdminCardsPage,
-  CardGameCount,
-  SyncSourceInfo,
-} from "@/lib/interfaces/admin";
-import type {
   AdminUserSummary,
+  CardGameCount,
+  CardSyncInput,
+  DataResult,
   ImpersonationAuditEntry,
   ImpersonationSession,
+  Response,
   Result,
   SyncInput,
-  CardSyncInput,
+  SyncSourceInfo,
   SyncState,
 } from "@magic-vault/shared";
 
 export type { AdminCard, AdminCardsPage, CardGameCount, SyncSourceInfo };
 
-export async function listSyncSources(): Promise<{
-  success: boolean;
-  data: SyncSourceInfo[];
-}> {
-  return apiGet<{ success: boolean; data: SyncSourceInfo[] }>(
-    "/api/admin/sync/sources",
-  );
+export async function listSyncSources(): Promise<DataResult<SyncSourceInfo[]>> {
+  return apiGet<DataResult<SyncSourceInfo[]>>("/api/admin/sync/sources");
 }
 
 export async function startSync(
   gameKey: string,
   lang: string = "en",
-): Promise<{
-  success: boolean;
-  data: SyncState;
-}> {
-  return apiPost<{ success: boolean; data: SyncState }>("/api/admin/sync", {
+): Promise<DataResult<SyncState>> {
+  return apiPost<DataResult<SyncState>>("/api/admin/sync", {
     gameKey,
     lang,
   } satisfies SyncInput);
 }
 
-export async function cancelSync(): Promise<{
-  success: boolean;
-  data: SyncState;
-}> {
-  return apiDelete<{ success: boolean; data: SyncState }>("/api/admin/sync");
+export async function cancelSync(): Promise<DataResult<SyncState>> {
+  return apiDelete<DataResult<SyncState>>("/api/admin/sync");
 }
 
-export async function getSyncStatus(): Promise<{
-  success: boolean;
-  data: SyncState;
-}> {
-  return apiGet<{ success: boolean; data: SyncState }>("/api/admin/sync");
+export async function getSyncStatus(): Promise<DataResult<SyncState>> {
+  return apiGet<DataResult<SyncState>>("/api/admin/sync");
 }
 
-export async function listCardGameKeys(): Promise<{
-  success: boolean;
-  data: CardGameCount[];
-}> {
-  return apiGet<{ success: boolean; data: CardGameCount[] }>(
-    "/api/admin/cards/games",
-  );
+export async function listCardGameKeys(): Promise<DataResult<CardGameCount[]>> {
+  return apiGet<DataResult<CardGameCount[]>>("/api/admin/cards/games");
 }
 
-export async function dumpCards(
-  gameKey?: string,
-): Promise<{ success: boolean; message: string }> {
-  return apiPost<{ success: boolean; message: string }>(
+export async function dumpCards(gameKey?: string): Promise<Response> {
+  return apiPost<Response>(
     "/api/admin/cards/dump",
     gameKey ? { gameKey } : undefined,
   );
@@ -75,18 +54,14 @@ export async function dumpCards(
 export async function listCards(
   page: number,
   search: string,
-): Promise<{ success: boolean; data: AdminCardsPage }> {
+): Promise<DataResult<AdminCardsPage>> {
   const params = new URLSearchParams({ page: String(page), limit: "50" });
   if (search) params.set("search", search);
-  return apiGet<{ success: boolean; data: AdminCardsPage }>(
-    `/api/admin/cards?${params}`,
-  );
+  return apiGet<DataResult<AdminCardsPage>>(`/api/admin/cards?${params}`);
 }
 
-export async function revectorizeCard(
-  cardId: string,
-): Promise<{ success: boolean; message: string }> {
-  return apiPost<{ success: boolean; message: string }>(
+export async function revectorizeCard(cardId: string): Promise<Response> {
+  return apiPost<Response>(
     `/api/admin/cards/${encodeURIComponent(cardId)}/revectorize`,
   );
 }
@@ -95,15 +70,12 @@ export async function syncCardById(
   gameKey: string,
   cardId: string,
   lang: string = "en",
-): Promise<{ success: boolean; message: string }> {
-  return apiPost<{ success: boolean; message: string }>(
-    "/api/admin/cards/sync",
-    {
-      gameKey,
-      cardId,
-      lang,
-    } satisfies CardSyncInput,
-  );
+): Promise<Response> {
+  return apiPost<Response>("/api/admin/cards/sync", {
+    gameKey,
+    cardId,
+    lang,
+  } satisfies CardSyncInput);
 }
 
 export async function createSyncEventSource(): Promise<EventSource> {
@@ -140,11 +112,6 @@ export async function stopImpersonation(): Promise<Result<null>> {
   return apiPost<Result<null>>("/api/admin/impersonate/stop");
 }
 
-export async function testServerRollbar(): Promise<{
-  success: boolean;
-  message: string;
-}> {
-  return apiPost<{ success: boolean; message: string }>(
-    "/api/admin/rollbar/test",
-  );
+export async function testServerRollbar(): Promise<Response> {
+  return apiPost<Response>("/api/admin/rollbar/test");
 }

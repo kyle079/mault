@@ -1,6 +1,7 @@
 import { apiDelete, apiGet, apiPost, apiPut } from "@/lib/api/client";
 import type { BinSetAuditEntry } from "@/lib/interfaces/audit";
 import type {
+  Availability,
   BinConfig,
   BinSet,
   BinUpdate,
@@ -59,11 +60,11 @@ export async function checkSetName(
   name: string,
   gameGuid?: string,
   excludeGuid?: string,
-): Promise<Result<{ available: boolean }>> {
+): Promise<Result<Availability>> {
   const params = new URLSearchParams({ name });
   if (gameGuid) params.set("gameGuid", gameGuid);
   if (excludeGuid) params.set("excludeGuid", excludeGuid);
-  return apiGet<Result<{ available: boolean }>>(
+  return apiGet<Result<Availability>>(
     `/api/bins/check-name?${params.toString()}`,
   );
 }

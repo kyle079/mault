@@ -1,6 +1,9 @@
 import { apiPost } from "@/lib/api/client";
-import type { NotificationTestType } from "@/lib/interfaces/notifications";
-import type { Response, SerialEventReport } from "@magic-vault/shared";
+import type {
+  NotificationTestType,
+  Response,
+  SerialEventReport,
+} from "@magic-vault/shared";
 
 export type { NotificationTestType };
 

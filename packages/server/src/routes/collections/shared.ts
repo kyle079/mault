@@ -1,5 +1,6 @@
 import type {
   Collection,
+  DataResult,
   FieldMeta,
   ScannedCard,
   UnmatchedCard,
@@ -98,7 +99,7 @@ export function toUnmatchedCard(
 export async function loadCollections(
   tx: Transaction,
   orgId: string,
-): Promise<{ success: true; data: Collection[] }> {
+): Promise<DataResult<Collection[]>> {
   const rows = await tx
     .select({
       id: collections.id,

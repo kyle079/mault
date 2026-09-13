@@ -1,29 +1,22 @@
 import { apiGet, apiPost } from "@/lib/api/client";
-import type { BillingStatus } from "@/lib/interfaces/billing";
+import type {
+  ApiResult,
+  BillingStatus,
+  RedirectUrl,
+} from "@magic-vault/shared";
 import { queryOptions } from "@tanstack/react-query";
 
 export type { BillingStatus };
 
-export async function getBillingStatus(): Promise<{
-  success: boolean;
-  data?: BillingStatus;
-}> {
+export async function getBillingStatus(): Promise<ApiResult<BillingStatus>> {
   return apiGet("/api/billing");
 }
 
-export async function createCheckoutSession(): Promise<{
-  success: boolean;
-  message?: string;
-  data?: { url: string };
-}> {
+export async function createCheckoutSession(): Promise<ApiResult<RedirectUrl>> {
   return apiPost("/api/billing/checkout");
 }
 
-export async function createPortalSession(): Promise<{
-  success: boolean;
-  message?: string;
-  data?: { url: string };
-}> {
+export async function createPortalSession(): Promise<ApiResult<RedirectUrl>> {
   return apiPost("/api/billing/portal");
 }
 

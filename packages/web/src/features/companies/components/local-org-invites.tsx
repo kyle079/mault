@@ -19,7 +19,11 @@ import {
   type OrgInviteFormValues,
 } from "@/schemas/companies.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { Invitation } from "@magic-vault/shared";
+import type {
+  ApiResult,
+  CreatedInvitation,
+  Invitation,
+} from "@magic-vault/shared";
 import { IconCopy, IconMailPlus, IconPlus } from "@tabler/icons-react";
 import { useCallback, useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -61,7 +65,7 @@ export function LocalOrgInvites() {
     }
     setIsLoading(true);
     try {
-      const res = await apiGet<{ success: boolean; data?: Invitation[] }>(
+      const res = await apiGet<ApiResult<Invitation[]>>(
         "/api/local-auth/invites",
       );
       setInvites((res.data ?? []).filter((i) => i.status === "pending"));
@@ -78,11 +82,10 @@ export function LocalOrgInvites() {
 
   async function handleInvite({ email, role }: OrgInviteFormValues) {
     try {
-      const res = await localPost<{
-        success: boolean;
-        data?: { inviteUrl: string | null; emailSent: boolean };
-        message?: string;
-      }>("/api/local-auth/invites", { email, role });
+      const res = await localPost<ApiResult<CreatedInvitation>>(
+        "/api/local-auth/invites",
+        { email, role },
+      );
       if (!res.success || !res.data) {
         throw new Error(res.message ?? t("invites.createFailed"));
       }
@@ -99,7 +102,7 @@ export function LocalOrgInvites() {
   async function handleRevoke() {
     if (!revokeTarget) return;
     try {
-      const res = await localDelete<{ success: boolean; message?: string }>(
+      const res = await localDelete<ApiResult>(
         `/api/local-auth/invites/${revokeTarget.id}`,
       );
       if (!res.success)

@@ -8,4 +8,4 @@ export type DiscordEmbed = {
   footer?: { text: string };
 };
 
-export type DiscordNotificationKind = "scan" | "error";
+export type { NotificationKind as DiscordNotificationKind } from "@magic-vault/shared";

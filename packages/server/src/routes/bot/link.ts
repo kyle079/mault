@@ -1,3 +1,4 @@
+import type { BotLinkInput } from "@magic-vault/shared";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { db } from "../../db";
@@ -6,11 +7,7 @@ import type { AppEnv } from "../../middleware/auth";
 import { getOrgName } from "./shared";
 
 export const botLinkRoute = new Hono<AppEnv>().post("/link", async (c) => {
-  const body = await c.req.json<{
-    guildId?: string;
-    code?: string;
-    confirm?: boolean;
-  }>();
+  const body = await c.req.json<BotLinkInput>();
   const guildId = body.guildId;
   const code = body.code?.toUpperCase();
   const confirm = body.confirm ?? false;

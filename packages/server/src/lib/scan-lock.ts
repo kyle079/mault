@@ -1,3 +1,4 @@
+import type { LockEvents } from "@magic-vault/shared";
 import { eq } from "drizzle-orm";
 import { db } from "../db";
 import { orgSettings } from "../db/schema";
@@ -21,7 +22,11 @@ interface LockEntry extends ScanLock {
 const locks = new Map<string, LockEntry>();
 const orgWriters = new Map<string, Set<LockWriter>>();
 
-function emitToOrg(orgId: string, event: string, data: unknown) {
+function emitToOrg<K extends keyof LockEvents>(
+  orgId: string,
+  event: K,
+  data: LockEvents[K],
+) {
   const writers = orgWriters.get(orgId);
   if (!writers) return;
   for (const writer of writers) {

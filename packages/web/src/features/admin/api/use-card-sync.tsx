@@ -6,8 +6,11 @@ import {
 } from "@/lib/api/admin";
 import { DEFAULT_SYNC_STATE } from "@/lib/constants/admin";
 import { LIVE_CLOCK_TICK_MS } from "@/lib/constants/timing";
-import type { SyncSourceInfo } from "@/lib/interfaces/admin";
-import type { SyncState } from "@magic-vault/shared";
+import type {
+  SyncEvents,
+  SyncSourceInfo,
+  SyncState,
+} from "@magic-vault/shared";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   createContext,
@@ -62,21 +65,21 @@ export function CardSyncProvider({ children }: { children: ReactNode }) {
         }
 
         es.addEventListener("status", (e: MessageEvent) => {
-          setSyncState(JSON.parse(e.data) as SyncState);
+          setSyncState(JSON.parse(e.data) as SyncEvents["status"]);
         });
 
         es.addEventListener("progress", (e: MessageEvent) => {
-          const update = JSON.parse(e.data) as Partial<SyncState>;
+          const update = JSON.parse(e.data) as SyncEvents["progress"];
           setSyncState((prev) => ({ ...prev, ...update }));
         });
 
         es.addEventListener("done", (e: MessageEvent) => {
-          const update = JSON.parse(e.data) as Partial<SyncState>;
+          const update = JSON.parse(e.data) as SyncEvents["done"];
           setSyncState((prev) => ({ ...prev, ...update }));
         });
 
         es.addEventListener("log", (e: MessageEvent) => {
-          const { line } = JSON.parse(e.data) as { line: string };
+          const { line } = JSON.parse(e.data) as SyncEvents["log"];
           setSyncState((prev) => ({
             ...prev,
             logs: [...prev.logs.slice(-199), line],
@@ -85,7 +88,7 @@ export function CardSyncProvider({ children }: { children: ReactNode }) {
 
         es.addEventListener("error", (e: MessageEvent) => {
           if (e.data) {
-            const update = JSON.parse(e.data) as { message: string };
+            const update = JSON.parse(e.data) as SyncEvents["error"];
             setSyncState((prev) => ({
               ...prev,
               status: "failed",

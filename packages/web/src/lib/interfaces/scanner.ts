@@ -1,4 +1,3 @@
-import type { SessionViewer } from "@/lib/interfaces/collections";
 import type {
   BinConfig,
   BinRoute,
@@ -9,10 +8,15 @@ import type {
   ScanRegion,
   ScannedCard,
   ScannerStatus,
+  SessionViewer,
   UnmatchedCard,
 } from "@magic-vault/shared";
 
-export type PhoneCameraCaptureStatus = "idle" | "waiting" | "connected" | "error";
+export type PhoneCameraCaptureStatus =
+  | "idle"
+  | "waiting"
+  | "connected"
+  | "error";
 
 export type PhoneLocalCameraStatus =
   | "requesting-camera"

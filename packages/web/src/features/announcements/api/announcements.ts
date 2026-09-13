@@ -1,11 +1,16 @@
 import { apiDelete, apiGet, apiPost, apiPut } from "@/lib/api/client";
-import type { AnnouncementInput } from "@/lib/interfaces/announcements";
-import type { Announcement, Result } from "@magic-vault/shared";
+import type {
+  Announcement,
+  AnnouncementInput,
+  Result,
+} from "@magic-vault/shared";
 import { queryOptions } from "@tanstack/react-query";
 
 export type { AnnouncementInput };
 
-export async function listActiveAnnouncements(): Promise<Result<Announcement[]>> {
+export async function listActiveAnnouncements(): Promise<
+  Result<Announcement[]>
+> {
   return apiGet<Result<Announcement[]>>("/api/announcements/active");
 }
 

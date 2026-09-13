@@ -1,6 +1,5 @@
 import { apiGet } from "@/lib/api/client";
-import type { PublicPricing } from "@/lib/interfaces/landing";
-import type { Result } from "@magic-vault/shared";
+import type { PublicPricing, Result } from "@magic-vault/shared";
 import { useEffect, useState } from "react";
 
 export type { PublicPricing };

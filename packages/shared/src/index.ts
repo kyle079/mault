@@ -39,3 +39,6 @@ export * from "./schemas/collections.schema";
 export * from "./schemas/games.schema";
 export * from "./schemas/notifications.schema";
 export * from "./schemas/organizations.schema";
+
+export * from "./interfaces/bot.interface";
+export * from "./interfaces/events.interface";

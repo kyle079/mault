@@ -8,6 +8,9 @@ import {
   handleForbidden,
 } from "@/lib/api/client";
 import type {
+  AddCollectionCardResult,
+  Availability,
+  CardImage,
   CardUpdateInput,
   Collection,
   CreateCollectionInput,
@@ -50,10 +53,10 @@ export async function renameCollection(
 export async function checkCollectionName(
   name: string,
   excludeGuid?: string,
-): Promise<Result<{ available: boolean }>> {
+): Promise<Result<Availability>> {
   const params = new URLSearchParams({ name });
   if (excludeGuid) params.set("excludeGuid", excludeGuid);
-  return apiGet<Result<{ available: boolean }>>(
+  return apiGet<Result<Availability>>(
     `/api/collections/check-name?${params.toString()}`,
   );
 }
@@ -79,8 +82,8 @@ export async function loadCollectionCards(
 export async function loadCardImage(
   guid: string,
   scanId: string,
-): Promise<Result<{ capturedImageUrl?: string }>> {
-  return apiGet<Result<{ capturedImageUrl?: string }>>(
+): Promise<Result<CardImage>> {
+  return apiGet<Result<CardImage>>(
     `/api/collections/${guid}/cards/${scanId}/image`,
   );
 }
@@ -88,13 +91,7 @@ export async function loadCardImage(
 export async function addCollectionCard(
   guid: string,
   record: ScannedCard,
-): Promise<
-  Result<ScannedCard> & {
-    scanLimitReached?: boolean;
-    binLimitReached?: boolean;
-    binNumber?: number;
-  }
-> {
+): Promise<AddCollectionCardResult> {
   const res = await fetch(`${API_BASE}/api/collections/${guid}/cards`, {
     method: "POST",
     headers: {

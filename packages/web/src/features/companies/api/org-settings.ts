@@ -1,4 +1,5 @@
 import { apiGet, apiPost, apiPut } from "@/lib/api/client";
+import type { ApiResult, DiscordLinkCode } from "@magic-vault/shared";
 import {
   DEFAULT_ORG_SETTINGS,
   type OrgSettings,
@@ -9,31 +10,23 @@ import { queryOptions } from "@tanstack/react-query";
 export { DEFAULT_ORG_SETTINGS };
 export type { OrgSettings };
 
-export async function getOrgSettings(): Promise<{
-  success: boolean;
-  data?: OrgSettings;
-}> {
+export async function getOrgSettings(): Promise<ApiResult<OrgSettings>> {
   return apiGet("/api/org-settings");
 }
 
 export async function saveOrgSettings(
   patch: OrgSettingsUpdate,
-): Promise<{ success: boolean; data?: OrgSettings }> {
+): Promise<ApiResult<OrgSettings>> {
   return apiPut("/api/org-settings", patch);
 }
 
-export async function generateDiscordLinkCode(): Promise<{
-  success: boolean;
-  message?: string;
-  data?: { code: string; expiresAt: string };
-}> {
+export async function generateDiscordLinkCode(): Promise<
+  ApiResult<DiscordLinkCode>
+> {
   return apiPost("/api/org-settings/discord-link-code");
 }
 
-export async function unlinkDiscord(): Promise<{
-  success: boolean;
-  message?: string;
-}> {
+export async function unlinkDiscord(): Promise<ApiResult> {
   return apiPost("/api/org-settings/discord-unlink");
 }
 

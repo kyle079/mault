@@ -4,14 +4,21 @@ import type {
   SessionError,
   SessionMonitorState,
 } from "@/lib/interfaces/scanner";
-import type { SessionViewer } from "@/lib/interfaces/collections";
-import type { Collection, ScannedCard, UnmatchedCard } from "@magic-vault/shared";
+import type {
+  Collection,
+  ScannedCard,
+  SessionEvents,
+  SessionViewer,
+  UnmatchedCard,
+} from "@magic-vault/shared";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 export type { SessionError, SessionMonitorState };
 
-export function useSessionMonitor(collectionGuid: string | undefined): SessionMonitorState {
+export function useSessionMonitor(
+  collectionGuid: string | undefined,
+): SessionMonitorState {
   const { t } = useTranslation("scanner");
   const [collection, setCollection] = useState<Collection | null>(null);
   const [cards, setCards] = useState<ScannedCard[]>([]);
@@ -38,99 +45,121 @@ export function useSessionMonitor(collectionGuid: string | undefined): SessionMo
     setViewers([]);
     setErrors([]);
 
-    createSessionEventSource(collectionGuid).then((es) => {
-      if (cancelled) { es.close(); return; }
-      esRef.current = es;
+    createSessionEventSource(collectionGuid)
+      .then((es) => {
+        if (cancelled) {
+          es.close();
+          return;
+        }
+        esRef.current = es;
 
-      es.addEventListener("session_init", (e) => {
-        const {
-          collection,
-          cards,
-          unmatchedCards: initUnmatched,
-          viewers: initViewers,
-        } = JSON.parse((e as MessageEvent).data) as {
-          collection: Collection;
-          cards: ScannedCard[];
-          unmatchedCards?: UnmatchedCard[];
-          viewers?: SessionViewer[];
+        es.addEventListener("session_init", (e) => {
+          const {
+            collection,
+            cards,
+            unmatchedCards: initUnmatched,
+            viewers: initViewers,
+          } = JSON.parse(
+            (e as MessageEvent).data,
+          ) as SessionEvents["session_init"];
+          setCollection(collection);
+          setCards(cards);
+          setUnmatchedCards(initUnmatched ?? []);
+          if (initViewers) setViewers(initViewers);
+          setStatus("connected");
+        });
+
+        es.addEventListener("viewers_updated", (e) => {
+          const { viewers: updated } = JSON.parse(
+            (e as MessageEvent).data,
+          ) as SessionEvents["viewers_updated"];
+          setViewers(updated);
+        });
+
+        es.addEventListener("card_added", (e) => {
+          const card = JSON.parse(
+            (e as MessageEvent).data,
+          ) as SessionEvents["card_added"];
+          setCards((prev) => [card, ...prev]);
+        });
+
+        es.addEventListener("card_updated", (e) => {
+          const updated = JSON.parse(
+            (e as MessageEvent).data,
+          ) as SessionEvents["card_updated"];
+          setCards((prev) =>
+            prev.map((c) => (c.scanId === updated.scanId ? updated : c)),
+          );
+        });
+
+        es.addEventListener("card_removed", (e) => {
+          const { scanId } = JSON.parse(
+            (e as MessageEvent).data,
+          ) as SessionEvents["card_removed"];
+          setCards((prev) => prev.filter((c) => c.scanId !== scanId));
+        });
+
+        es.addEventListener("cards_removed", (e) => {
+          const { scanIds } = JSON.parse(
+            (e as MessageEvent).data,
+          ) as SessionEvents["cards_removed"];
+          const ids = new Set(scanIds);
+          setCards((prev) => prev.filter((c) => !ids.has(c.scanId)));
+        });
+
+        es.addEventListener("cards_downloaded", (e) => {
+          const { scanIds } = JSON.parse(
+            (e as MessageEvent).data,
+          ) as SessionEvents["cards_downloaded"];
+          const ids = new Set(scanIds);
+          setCards((prev) =>
+            prev.map((c) =>
+              ids.has(c.scanId) ? { ...c, isDownloaded: true } : c,
+            ),
+          );
+        });
+
+        es.addEventListener("cards_cleared", () => {
+          setCards([]);
+        });
+
+        es.addEventListener("unmatched_added", (e) => {
+          const card = JSON.parse(
+            (e as MessageEvent).data,
+          ) as SessionEvents["unmatched_added"];
+          setUnmatchedCards((prev) => [card, ...prev]);
+        });
+
+        es.addEventListener("unmatched_removed", (e) => {
+          const { scanId } = JSON.parse(
+            (e as MessageEvent).data,
+          ) as SessionEvents["unmatched_removed"];
+          setUnmatchedCards((prev) => prev.filter((c) => c.scanId !== scanId));
+        });
+
+        es.addEventListener("unmatched_cleared", () => {
+          setUnmatchedCards([]);
+        });
+
+        es.addEventListener("scan_error", (e) => {
+          const { message } = JSON.parse(
+            (e as MessageEvent).data,
+          ) as SessionEvents["scan_error"];
+          pushError(message);
+        });
+
+        es.onerror = () => {
+          setStatus("error");
+          pushError(t("sessionMonitor.connectionLost"));
         };
-        setCollection(collection);
-        setCards(cards);
-        setUnmatchedCards(initUnmatched ?? []);
-        if (initViewers) setViewers(initViewers);
-        setStatus("connected");
+
+        es.onopen = () => {
+          setStatus("connected");
+        };
+      })
+      .catch(() => {
+        if (!cancelled) setStatus("error");
       });
-
-      es.addEventListener("viewers_updated", (e) => {
-        const { viewers: updated } = JSON.parse((e as MessageEvent).data) as { viewers: SessionViewer[] };
-        setViewers(updated);
-      });
-
-      es.addEventListener("card_added", (e) => {
-        const card = JSON.parse((e as MessageEvent).data) as ScannedCard;
-        setCards((prev) => [card, ...prev]);
-      });
-
-      es.addEventListener("card_updated", (e) => {
-        const updated = JSON.parse((e as MessageEvent).data) as ScannedCard;
-        setCards((prev) =>
-          prev.map((c) => (c.scanId === updated.scanId ? updated : c)),
-        );
-      });
-
-      es.addEventListener("card_removed", (e) => {
-        const { scanId } = JSON.parse((e as MessageEvent).data) as { scanId: string };
-        setCards((prev) => prev.filter((c) => c.scanId !== scanId));
-      });
-
-      es.addEventListener("cards_removed", (e) => {
-        const { scanIds } = JSON.parse((e as MessageEvent).data) as { scanIds: string[] };
-        const ids = new Set(scanIds);
-        setCards((prev) => prev.filter((c) => !ids.has(c.scanId)));
-      });
-
-      es.addEventListener("cards_downloaded", (e) => {
-        const { scanIds } = JSON.parse((e as MessageEvent).data) as { scanIds: string[] };
-        const ids = new Set(scanIds);
-        setCards((prev) =>
-          prev.map((c) => (ids.has(c.scanId) ? { ...c, isDownloaded: true } : c)),
-        );
-      });
-
-      es.addEventListener("cards_cleared", () => {
-        setCards([]);
-      });
-
-      es.addEventListener("unmatched_added", (e) => {
-        const card = JSON.parse((e as MessageEvent).data) as UnmatchedCard;
-        setUnmatchedCards((prev) => [card, ...prev]);
-      });
-
-      es.addEventListener("unmatched_removed", (e) => {
-        const { scanId } = JSON.parse((e as MessageEvent).data) as { scanId: string };
-        setUnmatchedCards((prev) => prev.filter((c) => c.scanId !== scanId));
-      });
-
-      es.addEventListener("unmatched_cleared", () => {
-        setUnmatchedCards([]);
-      });
-
-      es.addEventListener("scan_error", (e) => {
-        const { message } = JSON.parse((e as MessageEvent).data) as { message: string };
-        pushError(message);
-      });
-
-      es.onerror = () => {
-        setStatus("error");
-        pushError(t("sessionMonitor.connectionLost"));
-      };
-
-      es.onopen = () => {
-        setStatus("connected");
-      };
-    }).catch(() => {
-      if (!cancelled) setStatus("error");
-    });
 
     return () => {
       cancelled = true;

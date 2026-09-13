@@ -61,7 +61,8 @@ export const editCollectionCardRoute = new Hono<AppEnv>().put(
           }),
         };
       });
-      if (result.success) emitToSession(guid, "card_updated", result.data);
+      if (result.success && result.data)
+        emitToSession(guid, "card_updated", result.data);
       return c.json(result);
     } catch (err) {
       console.error(err);

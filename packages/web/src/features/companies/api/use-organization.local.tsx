@@ -3,6 +3,7 @@ import { apiGet } from "@/lib/api/client";
 import { ACTIVE_ORG_STORAGE_KEY as ORG_KEY } from "@/lib/constants/storage-keys";
 import type { LocalOrg } from "@/lib/interfaces/auth";
 import { invalidateAppQueries } from "@/lib/query-client";
+import type { ApiResult } from "@magic-vault/shared";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 
@@ -21,7 +22,7 @@ export function useOrgLocal() {
 
   useEffect(() => {
     let cancelled = false;
-    apiGet<{ success: boolean; data?: LocalOrg[] }>("/api/local-auth/organizations")
+    apiGet<ApiResult<LocalOrg[]>>("/api/local-auth/organizations")
       .then((res) => {
         if (!cancelled) setOrgs(res.data ?? []);
       })

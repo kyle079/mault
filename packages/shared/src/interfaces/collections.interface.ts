@@ -1,4 +1,5 @@
 import type { Game } from "./games.interface";
+import type { Result } from "./result.interface";
 import type { ScannedCard } from "./scanner.interface";
 
 export interface Collection {
@@ -15,3 +16,10 @@ export interface Collection {
 export interface CollectionWithCards extends Collection {
   cards: ScannedCard[];
 }
+
+export type CardImage = Pick<ScannedCard, "capturedImageUrl">;
+export type AddCollectionCardResult = Result<ScannedCard> & {
+  scanLimitReached?: boolean;
+  binLimitReached?: boolean;
+  binNumber?: number;
+};

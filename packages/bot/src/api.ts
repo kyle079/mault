@@ -1,11 +1,26 @@
+import type {
+  ApiResult,
+  BotChannelInput,
+  BotLinkInput,
+  CollectionSummary,
+  GameSummary,
+  LinkResult,
+  NotificationKind,
+  StatsResult,
+  StatusResult,
+} from "@magic-vault/shared";
+export type {
+  ApiResult,
+  CollectionSummary,
+  GameSummary,
+  LinkResult,
+  NotificationKind,
+  StatsResult,
+  StatusOverride,
+  StatusResult,
+} from "@magic-vault/shared";
 const SERVER_URL = process.env.SERVER_URL ?? "http://localhost:3001";
 const BOT_API_SECRET = process.env.BOT_API_SECRET ?? "";
-
-export interface ApiResult<T> {
-  success: boolean;
-  message?: string;
-  data?: T;
-}
 
 async function botFetch<T>(
   path: string,
@@ -22,19 +37,12 @@ async function botFetch<T>(
   return res.json();
 }
 
-export interface LinkResult {
-  orgName?: string;
-  currentOrgName?: string;
-}
-
 export function linkGuild(guildId: string, code: string, confirm = false) {
   return botFetch<LinkResult>("/bot/link", {
     method: "POST",
-    body: JSON.stringify({ guildId, code, confirm }),
+    body: JSON.stringify({ guildId, code, confirm } satisfies BotLinkInput),
   });
 }
-
-export type NotificationKind = "scan" | "error";
 
 export function setChannel(
   guildId: string,
@@ -44,7 +52,12 @@ export function setChannel(
 ) {
   return botFetch<undefined>("/bot/set-channel", {
     method: "POST",
-    body: JSON.stringify({ guildId, channelId, kind, collectionGuid }),
+    body: JSON.stringify({
+      guildId,
+      channelId,
+      kind,
+      collectionGuid,
+    } satisfies BotChannelInput),
   });
 }
 
@@ -55,15 +68,13 @@ export function clearChannel(
 ) {
   return botFetch<undefined>("/bot/set-channel", {
     method: "POST",
-    body: JSON.stringify({ guildId, kind, collectionGuid, clear: true }),
+    body: JSON.stringify({
+      guildId,
+      kind,
+      collectionGuid,
+      clear: true,
+    } satisfies BotChannelInput),
   });
-}
-
-export interface StatsResult {
-  collectionCount: number;
-  cardCount: number;
-  totalValue: number;
-  collectionName?: string;
 }
 
 export function getStats(guildId: string, collectionGuid?: string) {
@@ -72,40 +83,16 @@ export function getStats(guildId: string, collectionGuid?: string) {
   return botFetch<StatsResult>(`/bot/stats?${query.toString()}`);
 }
 
-export interface CollectionSummary {
-  guid: string | null;
-  name: string;
-  cardCount: number;
-}
-
 export function getCollections(guildId: string) {
   return botFetch<CollectionSummary[]>(
     `/bot/collections?guildId=${encodeURIComponent(guildId)}`,
   );
 }
 
-export interface StatusOverride {
-  name: string;
-  scanChannelId: string | null;
-  errorChannelId: string | null;
-}
-
-export interface StatusResult {
-  orgScanChannelId: string | null;
-  orgErrorChannelId: string | null;
-  collection: StatusOverride | null;
-  overrides: StatusOverride[];
-}
-
 export function getStatus(guildId: string, collectionGuid?: string) {
   const query = new URLSearchParams({ guildId });
   if (collectionGuid) query.set("collection", collectionGuid);
   return botFetch<StatusResult>(`/bot/status?${query.toString()}`);
-}
-
-export interface GameSummary {
-  key: string;
-  name: string;
 }
 
 export function getGames() {

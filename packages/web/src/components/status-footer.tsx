@@ -10,7 +10,7 @@ import { useSerial } from "@/features/scanner/api/use-serial";
 import { useRole } from "@/hooks/use-role";
 import { createSyncEventSource } from "@/lib/api/admin";
 import { DEFAULT_SYNC_STATE } from "@/lib/constants/admin";
-import type { SyncState } from "@magic-vault/shared";
+import type { SyncEvents, SyncState } from "@magic-vault/shared";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -76,13 +76,19 @@ function SyncStatusItem() {
         }
 
         es.addEventListener("status", (e: MessageEvent) => {
-          setSyncState(JSON.parse(e.data) as SyncState);
+          setSyncState(JSON.parse(e.data) as SyncEvents["status"]);
         });
         es.addEventListener("progress", (e: MessageEvent) => {
-          setSyncState((prev) => ({ ...prev, ...JSON.parse(e.data) }));
+          setSyncState((prev) => ({
+            ...prev,
+            ...(JSON.parse(e.data) as SyncEvents["progress"]),
+          }));
         });
         es.addEventListener("done", (e: MessageEvent) => {
-          setSyncState((prev) => ({ ...prev, ...JSON.parse(e.data) }));
+          setSyncState((prev) => ({
+            ...prev,
+            ...(JSON.parse(e.data) as SyncEvents["progress"]),
+          }));
         });
         es.addEventListener("error", (e: MessageEvent) => {
           if (e.data) setSyncState((prev) => ({ ...prev, status: "failed" }));
@@ -163,7 +169,8 @@ function HealthStatusItem() {
 
   if (pathname === "/app/health") return null;
 
-  const failedChecks = data?.checks.filter((check) => check.status === "error") ?? [];
+  const failedChecks =
+    data?.checks.filter((check) => check.status === "error") ?? [];
   const dot = !data ? "muted" : data.healthy ? "success" : "error";
   const label = !data
     ? t("statusFooter.health")
@@ -243,7 +250,11 @@ export function StatusFooter() {
           dot={cameraDot}
           tooltip={cameraTooltip}
         />
-        <StatusItem label={deviceLabel} dot={deviceDot} tooltip={deviceTooltip} />
+        <StatusItem
+          label={deviceLabel}
+          dot={deviceDot}
+          tooltip={deviceTooltip}
+        />
         <SyncStatusItem />
         <HealthStatusItem />
       </div>

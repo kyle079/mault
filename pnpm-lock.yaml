@@ -13,6 +13,9 @@ importers:
 
   packages/bot:
     dependencies:
+      "@magic-vault/shared":
+        specifier: workspace:*
+        version: link:../shared
       "@hono/node-server":
         specifier: ^1.19.9
         version: 1.19.9(hono@4.12.2)

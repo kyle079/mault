@@ -1,4 +1,4 @@
-import type { SyncState } from "@magic-vault/shared";
+import type { SyncEvents, SyncState } from "@magic-vault/shared";
 
 type SseWriter = (event: string, data: unknown) => void;
 
@@ -19,7 +19,7 @@ let cancelFlag = false;
 let abortController: AbortController | null = null;
 const writers = new Set<SseWriter>();
 
-function emit(event: string, data: unknown): void {
+function emit<K extends keyof SyncEvents>(event: K, data: SyncEvents[K]): void {
   for (const writer of writers) {
     try {
       writer(event, data);
@@ -66,7 +66,10 @@ export function addLog(msg: string): void {
   emit("log", { line: msg });
 }
 
-export function emitEvent(event: string, data: unknown): void {
+export function emitEvent<K extends keyof SyncEvents>(
+  event: K,
+  data: SyncEvents[K],
+): void {
   emit(event, data);
 }
 

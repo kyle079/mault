@@ -40,3 +40,17 @@ export interface AuditEventRow {
   target: string | null;
   createdAt: string;
 }
+
+export interface CreatedApiKey {
+  apiKey: ApiKey;
+  rawKey: string;
+}
+export interface CreatedInvitation {
+  inviteUrl: string | null;
+  emailSent: boolean;
+}
+export type OrganizationSummary = Pick<LocalOrg, "id" | "name">;
+export interface DiscordLinkCode {
+  code: string;
+  expiresAt: string;
+}

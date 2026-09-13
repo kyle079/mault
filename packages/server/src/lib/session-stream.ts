@@ -1,3 +1,4 @@
+import type { OrgEvents, SessionEvents } from "@magic-vault/shared";
 type SseWriter = (event: string, data: unknown) => void;
 
 import type { SessionViewer as ViewerInfo } from "@magic-vault/shared";
@@ -15,7 +16,11 @@ interface SessionEntry {
 const sessions = new Map<string, SessionEntry>();
 const orgCountWriters = new Map<string, Set<SseWriter>>();
 
-export function emitToOrg(orgId: string, event: string, data: unknown) {
+export function emitToOrg<K extends keyof OrgEvents>(
+  orgId: string,
+  event: K,
+  data: OrgEvents[K],
+) {
   const writers = orgCountWriters.get(orgId);
   if (!writers) return;
   for (const writer of writers) {
@@ -31,7 +36,9 @@ function broadcastViewers(guid: string, session: SessionEntry) {
   );
   for (const entry of session.viewers) {
     try {
-      entry.writer("viewers_updated", { viewers });
+      entry.writer("viewers_updated", {
+        viewers,
+      } satisfies SessionEvents["viewers_updated"]);
     } catch {}
   }
   emitToOrg(session.orgId, "live_count", { guid, count: session.viewers.size });
@@ -66,10 +73,10 @@ export function subscribeSession(
   };
 }
 
-export function emitToSession(
+export function emitToSession<K extends keyof SessionEvents>(
   guid: string,
-  event: string,
-  data: unknown,
+  event: K,
+  data: SessionEvents[K],
 ): void {
   const session = sessions.get(guid);
   if (!session) return;

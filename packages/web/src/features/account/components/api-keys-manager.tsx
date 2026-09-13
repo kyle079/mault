@@ -12,6 +12,7 @@ import {
   type CreateApiKeyFormValues,
 } from "@/schemas/api-keys.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { ApiResult, CreatedApiKey } from "@magic-vault/shared";
 import { IconCopy, IconKey, IconLoader2, IconPlus } from "@tabler/icons-react";
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -47,9 +48,7 @@ export function ApiKeysManager() {
   const load = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await apiGet<{ success: boolean; data?: ApiKey[] }>(
-        "/api/local-auth/api-keys",
-      );
+      const res = await apiGet<ApiResult<ApiKey[]>>("/api/local-auth/api-keys");
       setKeys(res.data ?? []);
     } catch {
       toast.error(t("apiKeys.loadFailed"));
@@ -64,11 +63,10 @@ export function ApiKeysManager() {
 
   async function handleCreate({ name }: CreateApiKeyFormValues) {
     try {
-      const res = await localPost<{
-        success: boolean;
-        data?: { apiKey: ApiKey; rawKey: string };
-        message?: string;
-      }>("/api/local-auth/api-keys", { name: name.trim() });
+      const res = await localPost<ApiResult<CreatedApiKey>>(
+        "/api/local-auth/api-keys",
+        { name: name.trim() },
+      );
       if (!res.success || !res.data) {
         throw new Error(res.message ?? t("apiKeys.createFailed"));
       }
@@ -85,7 +83,7 @@ export function ApiKeysManager() {
     if (!revokeTarget) return;
     setRevokingPrefix(revokeTarget.keyPrefix);
     try {
-      const res = await localDelete<{ success: boolean; message?: string }>(
+      const res = await localDelete<ApiResult>(
         `/api/local-auth/api-keys/${revokeTarget.keyPrefix}`,
       );
       if (!res.success)

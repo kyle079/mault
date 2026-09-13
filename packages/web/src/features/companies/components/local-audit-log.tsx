@@ -1,7 +1,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { useOrgLocal } from "@/features/companies/api/use-organization.local";
 import { apiGet } from "@/lib/api/client";
-import type { AuditEventRow } from "@magic-vault/shared";
+import type { ApiResult, AuditEventRow } from "@magic-vault/shared";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -32,9 +32,7 @@ export function LocalAuditLog() {
     }
     let cancelled = false;
     setIsLoading(true);
-    apiGet<{ success: boolean; data?: AuditEventRow[] }>(
-      "/api/local-auth/audit-events",
-    )
+    apiGet<ApiResult<AuditEventRow[]>>("/api/local-auth/audit-events")
       .then((res) => {
         if (!cancelled) setEvents(res.data ?? []);
       })
