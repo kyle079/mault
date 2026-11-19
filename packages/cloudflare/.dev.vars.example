@@ -1,0 +1,7 @@
+# Local wrangler preview only. Copy to .dev.vars; production uses wrangler secret put.
+DATABASE_URL=postgresql://user:password@your-postgres-host/database
+WEB_URL=http://localhost:8787
+NEON_AUTH_URL=https://your-neon-auth-host
+IMPERSONATION_SECRET=replace-with-a-random-secret
+# With AUTH_PROVIDER=local in wrangler.json, also set:
+# OWN_AUTH_TOKEN_PEPPER=replace-with-at-least-32-random-bytes

@@ -1,0 +1,24 @@
+{
+  "name": "@magic-vault/cloudflare",
+  "version": "1.0.49",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "build:web": "node scripts/build-web.mjs",
+    "preview": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:check": "wrangler deploy --dry-run",
+    "test": "tsx --test tests/*.test.ts"
+  },
+  "dependencies": {
+    "@cloudflare/containers": "0.3.7"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20260911.1",
+    "@types/node": "^20",
+    "tsx": "^4.19.3",
+    "typescript": "^5",
+    "wrangler": "4.131.1"
+  }
+}

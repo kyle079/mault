@@ -7,6 +7,8 @@
     "dev:bot": "turbo dev --filter=@magic-vault/bot",
     "build": "turbo build",
     "lint": "turbo lint",
+    "deploy:cloudflare": "pnpm --filter @magic-vault/cloudflare deploy",
+    "check:cloudflare": "pnpm --filter @magic-vault/cloudflare build && pnpm --filter @magic-vault/cloudflare test && pnpm --filter @magic-vault/cloudflare deploy:check",
     "version:patch": "node scripts/version-bump.mjs patch",
     "version:minor": "node scripts/version-bump.mjs minor",
     "version:major": "node scripts/version-bump.mjs major"
