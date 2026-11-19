@@ -1,4 +1,6 @@
 import { reportSerialEvent } from "@/features/notifications/api/notification-settings";
+import { ControllerConnectDialog } from "@/features/scanner/components/controller-connect-dialog";
+import { PiControllerPort } from "@/features/scanner/lib/pi-controller-port";
 import {
   formatCommLog,
   MAX_COMM_LOG_ENTRIES,
@@ -31,13 +33,14 @@ const SerialContext = createContext<SerialContextValue | null>(null);
 export function SerialProvider({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation("scanner");
   const [isConnected, setIsConnected] = useState(false);
+  const [connectDialogOpen, setConnectDialogOpen] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [firmwareVersion, setFirmwareVersion] = useState<string | null>(null);
   const [board, setBoard] = useState<SerialBoardType | null>(null);
   const [isFlashing, setIsFlashing] = useState(false);
   const [flashProgress, setFlashProgress] = useState<number | null>(null);
   const [flashLog, setFlashLog] = useState<string[]>([]);
-  const portRef = useRef<SerialPort | null>(null);
+  const portRef = useRef<SerialPort | PiControllerPort | null>(null);
   const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(
     null,
   );
@@ -109,6 +112,8 @@ export function SerialProvider({ children }: { children: React.ReactNode }) {
                 for (const listener of listenersRef.current) {
                   listener(parsed);
                 }
+                // Jam notifications must not consume a command's response waiter.
+                if (parsed?.error === "jam") continue;
               } catch {
                 console.warn("[Serial] Non-JSON message:", trimmed);
               }
@@ -250,11 +255,12 @@ export function SerialProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const openPort = useCallback(
-    async (port: SerialPort): Promise<boolean> => {
+    async (port: SerialPort | PiControllerPort): Promise<boolean> => {
       if (!port.readable || !port.writable) {
         try {
           await port.open({ baudRate: 9600 });
-        } catch {
+        } catch (error) {
+          if (port instanceof PiControllerPort) throw error;
           toast.error(t("serial.connectionFailed.title"), {
             description: t("serial.connectionFailed.description"),
           });
@@ -293,7 +299,7 @@ export function SerialProvider({ children }: { children: React.ReactNode }) {
           if (typeof parsed?.version === "string") {
             setFirmwareVersion(parsed.version);
           }
-          if (parsed?.board === "esp32" || parsed?.board === "uno_r4") {
+          if (parsed?.board === "esp32" || parsed?.board === "uno_r4" || parsed?.board === "pi_zero") {
             setBoard(parsed.board);
           }
         } catch {}
@@ -336,7 +342,7 @@ export function SerialProvider({ children }: { children: React.ReactNode }) {
     ],
   );
 
-  const connect = useCallback(async () => {
+  const connectUsb = useCallback(async () => {
     if (disconnectingRef.current) {
       await disconnectingRef.current;
     }
@@ -353,10 +359,20 @@ export function SerialProvider({ children }: { children: React.ReactNode }) {
     await openPort(port);
   }, [openPort]);
 
+  const connect = useCallback(async () => {
+    if (!portRef.current) setConnectDialogOpen(true);
+  }, []);
+
+  const connectPi = useCallback(async (url: string, token: string) => {
+    if (disconnectingRef.current) await disconnectingRef.current;
+    if (portRef.current) return;
+    await openPort(new PiControllerPort(url, token));
+  }, [openPort]);
+
   const flashEsp32 = useCallback(
     async (firmwareUrl: string): Promise<FlashEsp32Result> => {
       const port = portRef.current;
-      if (!port) return { success: false, error: "Not connected." };
+      if (!port || port instanceof PiControllerPort) return { success: false, error: "An ESP32 USB connection is required." };
 
       setIsFlashing(true);
       setFlashProgress(0);
@@ -535,6 +551,7 @@ export function SerialProvider({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
+      <ControllerConnectDialog open={connectDialogOpen} onOpenChange={setConnectDialogOpen} onUsb={connectUsb} onPi={connectPi} />
     </SerialContext>
   );
 }

@@ -24,7 +24,9 @@
 // Reported in getStatus/boot so the app knows how (or whether) it can
 // update the device - only the ESP32 build can be reflashed from the
 // browser (see use-serial.tsx's flashEsp32).
-#if defined(ARDUINO_ARCH_ESP32)
+#if defined(MAULT_PI)
+#define BOARD_TYPE "pi_zero"
+#elif defined(ARDUINO_ARCH_ESP32)
 #define BOARD_TYPE "esp32"
 #else
 #define BOARD_TYPE "uno_r4"
@@ -44,7 +46,11 @@ int moduleChannelOffset = 0;
 
 // IR sensor pins, one per module (active LOW: pin reads LOW when a card is
 // present).
-#if defined(CONFIG_IDF_TARGET_ESP32S3)
+#if defined(MAULT_PI)
+// BCM GPIO numbers; GPIO2/3 are reserved for I2C and GPIO22 for PCA9685 OE.
+const int IR_PINS[MAX_MODULES] = {17, 27, 23, 24, 25};
+#define IR_PIN_HOPPER 16
+#elif defined(CONFIG_IDF_TARGET_ESP32S3)
 // ESP32-S3 pins avoid strapping (0, 3, 45, 46), the native USB D-/D+ pair
 // (19, 20), the default I2C pins used to
 // wire the PCA9685 (8, 9 - see Wiring), the USB-UART bridge (43, 44), and

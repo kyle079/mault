@@ -1,0 +1,22 @@
+[Unit]
+Description=Mault Pi sorter controller
+After=network.target
+
+[Service]
+Type=simple
+User=mault
+SupplementaryGroups=gpio i2c
+WorkingDirectory=/opt/mault/firmware/pi
+EnvironmentFile=/etc/mault-controller.env
+ExecStart=/opt/mault/firmware/pi/.venv/bin/python /opt/mault/firmware/pi/bridge.py
+Restart=on-failure
+RestartSec=3
+KillMode=control-group
+TimeoutStopSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

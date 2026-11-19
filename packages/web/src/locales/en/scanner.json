@@ -1,4 +1,17 @@
 {
+  "piController": {
+    "title": "Connect sorter",
+    "description": "Use USB for an Arduino or ESP32, or connect to your Raspberry Pi over the network.",
+    "usb": "Connect via USB",
+    "address": "Pi controller address",
+    "token": "Controller token",
+    "connect": "Connect to Pi",
+    "connecting": "Connecting…",
+    "update": "Update the Pi checkout, rebuild the controller, and restart its service.",
+    "failed": "Could not connect to the Pi controller.",
+    "invalidAddress": "Enter a ws:// or wss:// address without credentials or query parameters.",
+    "invalidToken": "Enter the controller token (at least 32 characters)."
+  },
   "camera": {
     "permissionDenied": "Camera permission denied. Please allow camera access and try again.",
     "accessError": "Could not access camera. Please check your device."

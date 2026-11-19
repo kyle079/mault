@@ -86,7 +86,7 @@ export interface ScannedCardsContextValue {
 
 export type SerialMessageListener = (message: unknown) => void;
 
-export type SerialBoardType = "esp32" | "uno_r4";
+export type SerialBoardType = "esp32" | "uno_r4" | "pi_zero";
 
 export interface FlashEsp32Result {
   success: boolean;

@@ -1,0 +1,6 @@
+**
+!firmware/
+!firmware/**
+firmware/pi/build/
+firmware/pi/.venv/
+firmware/pi/__pycache__/

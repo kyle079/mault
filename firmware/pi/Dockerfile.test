@@ -1,0 +1,11 @@
+FROM gcc:14
+RUN apt-get update -qq && apt-get install -y --no-install-recommends cmake python3-venv \
+    && rm -rf /var/lib/apt/lists/*
+COPY firmware/pi/requirements.txt /tmp/requirements.txt
+RUN python3 -m venv /venv && /venv/bin/pip install --no-cache-dir -r /tmp/requirements.txt
+WORKDIR /src
+COPY firmware firmware
+RUN cmake -S firmware/pi -B /build && cmake --build /build -j2
+RUN mkdir -p firmware/pi/build && cp /build/mault-controller firmware/pi/build/
+WORKDIR /src/firmware/pi
+CMD ["/venv/bin/python", "-m", "unittest", "-v", "test_controller"]

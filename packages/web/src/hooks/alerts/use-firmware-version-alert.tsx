@@ -40,7 +40,9 @@ export function useFirmwareVersionAlert(): {
         version: firmwareVersion,
         latest: LATEST_FIRMWARE_VERSION,
       }),
-      actions: isEsp32 ? (
+      actions: board === "pi_zero" ? (
+        <span className="text-xs">{t("piController.update")}</span>
+      ) : isEsp32 ? (
         <Button
           size="xs"
           variant="outline"
